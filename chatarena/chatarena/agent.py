@@ -9,6 +9,7 @@ from tenacity import RetryError
 from .backends import IntelligenceBackend, load_backend
 from .config import AgentConfig, BackendConfig, Configurable
 from .message import SYSTEM_NAME, Message
+from torch.nn import Linear
 
 # A special signal sent by the player to indicate that it is not possible to continue the conversation, and it requests to end the conversation.
 # It contains a random UUID string to avoid being exploited by any of the players.
@@ -160,7 +161,28 @@ class Player(Agent):
         """
         self.backend.reset()
 
-
+class Chameleon(Player):
+    def __init__(self, name, role_desc, backend, embedding_size, num_players, global_prompt = None, **kwargs):
+        super().__init__(name, role_desc, backend, global_prompt, **kwargs)
+        
+        self.belief_head = Linear(embedding_size, num_players)
+        
+    def get_belief(self, hidden_state):
+        beliefs = self.belief_head(hidden_state)
+        
+        return beliefs
+    
+class NonChameleon(Player):
+    def __init__(self, name, role_desc, backend, embedding_size, num_words, global_prompt = None, **kwargs):
+        super().__init__(name, role_desc, backend, global_prompt, **kwargs)
+        
+        self.belief_head = Linear(embedding_size, num_words)
+        
+    def get_belief(self, hidden_state):
+        beliefs = self.belief_head(hidden_state)
+        
+        return beliefs
+    
 class Moderator(Player):
     """
     The Moderator class represents a special type of player that moderates the conversation.

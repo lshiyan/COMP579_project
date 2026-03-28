@@ -139,7 +139,7 @@ class Arena:
 
     def launch_cli(self, max_steps: int = None, interactive: bool = True):
         """Launch the command line interface."""
-        from chatarena.ui.cli import ArenaCLI
+        from .ui.cli import ArenaCLI
 
         cli = ArenaCLI(self)
         cli.launch(max_steps=max_steps, interactive=interactive)

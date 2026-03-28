@@ -5,6 +5,7 @@ from .cohere import CohereAIChat
 from .hf_transformers import TransformersConversational
 from .human import Human
 from .openai import OpenAIChat
+from .llm import TransformersLlamaChat
 
 
 # Load a backend from a config dictionary
