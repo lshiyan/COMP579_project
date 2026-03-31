@@ -4,6 +4,7 @@ from .base import BACKEND_REGISTRY, IntelligenceBackend, register_backend
 from .cohere import CohereAIChat
 from .hf_transformers import TransformersConversational
 from .human import Human
+from .ollama import OllamaChat
 from .openai import OpenAIChat
 
 
