@@ -10,49 +10,6 @@ from ..message import Message, MessagePool
 from .base import Environment, TimeStep, register_env
 from ..backends import TransformersLlamaChat
 
-DEFAULT_TOPIC_CODES = {
-    "Fruits": [
-        "Apple",
-        "Banana",
-        "Orange",
-        "Grape",
-        "Strawberry",
-        "Pineapple",
-        "Mango",
-        "Watermelon",
-    ],
-    "Animals": [
-        "Lion",
-        "Elephant",
-        "Giraffe",
-        "Monkey",
-        "Zebra",
-        "Tiger",
-        "Bear",
-        "Kangaroo",
-    ],
-    "Sports": [
-        "Soccer",
-        "Basketball",
-        "Tennis",
-        "Baseball",
-        "Swimming",
-        "Cycling",
-        "Volleyball",
-        "Golf",
-    ],
-    "Countries": [
-        "United States",
-        "Canada",
-        "Brazil",
-        "United Kingdom",
-        "France",
-        "Germany",
-        "Japan",
-        "Australia",
-    ],
-}
-
 
 @register_env
 class Chameleon(Environment):
@@ -68,6 +25,7 @@ class Chameleon(Environment):
         speaker_embedding_size: int = 64,
         role_embedding_size: int = 16,
         update_speaker_beliefs: bool = False,
+        num_clue_rounds: int = 1,
         **kwargs,
     ):
         if topic_codes is None:
@@ -80,12 +38,15 @@ class Chameleon(Environment):
         self.role_embedding_size = role_embedding_size
         self.update_speaker_beliefs = update_speaker_beliefs
 
+        if num_clue_rounds < 1:
+            raise ValueError("num_clue_rounds must be >= 1")
+        self.num_clue_rounds = num_clue_rounds
+
         self.backend = TransformersLlamaChat.from_config(backend)
-        
+
         max_num_players = len(player_configs)
         max_num_words = max(len(words) for words in self.topic_codes.values())
 
-        # Shared recurrent belief modules
         self.shared_belief_updater = nn.GRUCell(
             input_size=(
                 self.embedding_size
@@ -105,10 +66,8 @@ class Chameleon(Environment):
         self.shared_word_belief_head = nn.Linear(
             self.belief_state_size, max_num_words
         )
-        
-        self.shared_value_head = nn.Linear(
-            self.belief_state_size, 1
-        )
+
+        self.shared_value_head = nn.Linear(self.belief_state_size, 1)
 
         self.players = [
             Player(
@@ -128,6 +87,8 @@ class Chameleon(Environment):
         ]
 
         self.player_names = [player.name for player in self.players]
+        self.agent_to_idx = {name: i for i, name in enumerate(self.player_names)}
+
         super().__init__(
             player_names=self.player_names,
             topic_codes=topic_codes,
@@ -140,12 +101,16 @@ class Chameleon(Environment):
         self.code = None
         self.chameleon_name = None
         self.non_chameleon_names = None
+        self.word_to_idx = None
 
         self._current_turn = 0
         self._next_player_idx = 0
         self._current_phase = "give clues"
+        self._current_clue_round = 0
         self._players_votes = None
         self._initialized = False
+
+        self.total_rewards = []
 
         self.reset()
 
@@ -163,6 +128,7 @@ class Chameleon(Environment):
         ]
 
         current_words = self.topic_codes[self.topic]
+        self.word_to_idx = {word: i for i, word in enumerate(current_words)}
 
         for player in self.players:
             player.set_shared_belief_heads(
@@ -191,6 +157,7 @@ class Chameleon(Environment):
         self._current_turn = 0
         self._next_player_idx = 0
         self._current_phase = "give clues"
+        self._current_clue_round = 0
 
         self.message_pool.reset()
 
@@ -204,13 +171,17 @@ class Chameleon(Environment):
             visible_to=self.chameleon_name,
         )
         self._moderator_speak(
-            "Now everyone gives one clue (but don't give away the secret word). "
-            f"You cannot repeat what others has said. We will start with {self.player_names[0]}."
+            f"Now everyone gives {self.num_clue_rounds} clue round(s) "
+            f"(but don't give away the secret word). "
+            f"You cannot repeat what others have said. "
+            f"We will start with {self.player_names[0]}. "
+            f"Round 1/{self.num_clue_rounds}."
         )
         self._current_turn = 1
 
         self._players_votes = {name: 0 for name in self.player_names}
         self._initialized = True
+        self.total_rewards = []
 
         return TimeStep(
             observation=self.get_observation(),
@@ -278,21 +249,17 @@ class Chameleon(Environment):
         return False
 
     def _encode_message_for_beliefs(self, speaker_name: str, action: str) -> torch.Tensor:
-        """
-        Encodes a single new clue message into a fixed-size embedding.
-        """
+        message_embedding = self.backend.get_message_embedding(
+            speaker_name=speaker_name,
+            message_text=action,
+        )
 
-        message_embedding = self.backend.get_message_embedding(action)
-        
         if message_embedding.dim() == 1:
             message_embedding = message_embedding.unsqueeze(0)
 
         return message_embedding
 
     def _update_beliefs_for_new_clue(self, speaker_name: str, action: str):
-        """
-        Update each observing player's recurrent belief state from the new clue.
-        """
         message_embedding = self._encode_message_for_beliefs(speaker_name, action)
 
         for player in self.players:
@@ -303,6 +270,40 @@ class Chameleon(Environment):
                 message_embedding=message_embedding,
                 speaker_name=speaker_name,
             )
+
+    def _compute_belief_reward(
+        self,
+        speaker_name,
+        prior_beliefs,
+        post_beliefs,
+        alpha=0.5,
+    ):
+        speaker_idx = self.agent_to_idx[speaker_name]
+        chameleon_name = self.chameleon_name
+        word_idx = self.word_to_idx[self.code]
+
+        suspicion_terms = []
+        for player in self.players:
+            if player.name != speaker_name and player.name != chameleon_name:
+                prior_prob = prior_beliefs[player.name][speaker_idx]
+                post_prob = post_beliefs[player.name][speaker_idx]
+                suspicion_terms.append(prior_prob - post_prob)
+
+        if len(suspicion_terms) > 0:
+            suspicion_reward = torch.stack(suspicion_terms).mean()
+        else:
+            suspicion_reward = torch.tensor(0.0)
+
+        prior_word_prob = prior_beliefs[chameleon_name][word_idx]
+        post_word_prob = post_beliefs[chameleon_name][word_idx]
+
+        if speaker_name == chameleon_name:
+            word_reward = post_word_prob - prior_word_prob
+        else:
+            word_reward = prior_word_prob - post_word_prob
+
+        belief_reward = alpha * suspicion_reward + (1 - alpha) * word_reward
+        return belief_reward
 
     def step(self, player_name: str, action: str) -> TimeStep:
         if not self._initialized:
@@ -323,26 +324,45 @@ class Chameleon(Environment):
             prior_beliefs = {
                 player.name: player.beliefs.clone()
                 for player in self.players
-            }            
-            
-            # Recurrent belief update happens here, once per new clue.
+            }
+
             self._update_beliefs_for_new_clue(
                 speaker_name=player_name,
                 action=action,
             )
 
-            post_beliefs = {player.name: player.beliefs for player in self.players}
+            post_beliefs = {
+                player.name: player.beliefs.clone()
+                for player in self.players
+            }
+
+            if player_name != self.chameleon_name: #Only focus on making non-chameleon's win.
+                belief_reward = self._compute_belief_reward(
+                    player_name, prior_beliefs, post_beliefs
+                )
+                self.total_rewards.append(belief_reward)
+
             self._current_turn += 1
+
             if self._next_player_idx < len(self.player_names) - 1:
                 self._next_player_idx += 1
             else:
                 self._next_player_idx = 0
-                self._current_phase = "accuse"
-                self._moderator_speak(
-                    "Now vote which of the other players (excluding yourself) is the chameleon. "
-                    "You cannot vote for yourself."
-                )
-                self._current_turn += 1
+                self._current_clue_round += 1
+
+                if self._current_clue_round < self.num_clue_rounds:
+                    self._moderator_speak(
+                        f"Clue round {self._current_clue_round + 1}/{self.num_clue_rounds}. "
+                        f"We will start with {self.player_names[0]} again."
+                    )
+                    self._current_turn += 1
+                else:
+                    self._current_phase = "accuse"
+                    self._moderator_speak(
+                        "Now vote which of the other players (excluding yourself) is the chameleon. "
+                        "You cannot vote for yourself."
+                    )
+                    self._current_turn += 1
 
             timestep = TimeStep(
                 observation=self.get_observation(),
