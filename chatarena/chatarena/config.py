@@ -89,13 +89,6 @@ class AgentConfig(Config):
         # check if the role_desc field is specified
         if "role_desc" not in self:
             raise ValueError("The role_desc field is not specified")
-        # check if the backend field is specified
-        if "backend" not in self:
-            raise ValueError("The backend field is not specified")
-        # Make sure the backend field is a BackendConfig
-        if not isinstance(self["backend"], BackendConfig):
-            raise ValueError("The backend field must be a BackendConfig")
-
 
 class ArenaConfig(Config):
     """ArenaConfig contains a list of AgentConfig."""

@@ -8,8 +8,7 @@ from rich.color import ANSI_COLOR_NAMES
 from rich.console import Console
 from rich.text import Text
 
-from ..arena import Arena, TooManyInvalidActions
-from ..backends.human import HumanBackendError
+from ..chameleon_arena import ChameleonArena, TooManyInvalidActions
 
 ASCII_ART = r"""
 _________  .__               __      _____
@@ -36,7 +35,7 @@ logging.getLogger().setLevel(logging.ERROR)
 class ArenaCLI:
     """The CLI user interface for ChatArena."""
 
-    def __init__(self, arena: Arena):
+    def __init__(self, arena: ChameleonArena):
         self.arena = arena
 
     def launch(self, max_steps: int = None, interactive: bool = True):
@@ -51,7 +50,7 @@ class ArenaCLI:
         console.print("🏟 Chat Arena Initialized!", style="bold green")
 
         env = self.arena.environment
-        players = self.arena.players
+        players = env.players
 
         env_desc = self.arena.global_prompt
         num_players = env.num_players
@@ -137,23 +136,6 @@ class ArenaCLI:
 
             try:
                 timestep = self.arena.step()
-            except HumanBackendError as e:
-                # Handle human input and recover with the game update
-                human_player_name = env.get_next_player()
-                if interactive:
-                    human_input = prompt(
-                        [
-                            (
-                                "class:user_prompt",
-                                f"Type your input for {human_player_name}: ",
-                            )
-                        ],
-                        style=Style.from_dict({"user_prompt": "ansicyan underline"}),
-                    )
-                    # If not, the conversation does not stop
-                    timestep = env.step(human_player_name, human_input)
-                else:
-                    raise e  # cannot recover from this error in non-interactive mode
             except TooManyInvalidActions as e:
                 # Print the error message
                 console.print(f"Too many invalid actions: {e}", style="bold red")

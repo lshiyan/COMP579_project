@@ -1,9 +1,5 @@
 from ..config import BackendConfig
-from .anthropic import Claude
 from .base import BACKEND_REGISTRY, IntelligenceBackend, register_backend
-from .cohere import CohereAIChat
-from .hf_transformers import TransformersConversational
-from .human import Human
 from .openai import OpenAIChat
 from .llm import TransformersLlamaChat
 
