@@ -76,7 +76,7 @@ class Environment(Configurable):
         Note:
             This method must be implemented by subclasses.
         """
-        pass
+        ...
 
     def to_config(self) -> EnvironmentConfig:
         self._config_dict["env_type"] = self.type_name

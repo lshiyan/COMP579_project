@@ -1,6 +1,6 @@
 import random
 import re
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 import torch
 import torch.nn as nn
@@ -11,57 +11,24 @@ from .base import Environment, TimeStep, register_env
 from ..backends import TransformersLlamaChat
 
 DEFAULT_TOPIC_CODES = {
-    "Fruits": [
-        "Apple",
-        "Banana",
-        "Orange",
-        "Grape",
-        "Strawberry",
-        "Pineapple",
-        "Mango",
-        "Watermelon",
-    ],
-    "Animals": [
-        "Lion",
-        "Elephant",
-        "Giraffe",
-        "Monkey",
-        "Zebra",
-        "Tiger",
-        "Bear",
-        "Kangaroo",
-    ],
-    "Sports": [
-        "Soccer",
-        "Basketball",
-        "Tennis",
-        "Baseball",
-        "Swimming",
-        "Cycling",
-        "Volleyball",
-        "Golf",
-    ],
-    "Countries": [
-        "United States",
-        "Canada",
-        "Brazil",
-        "United Kingdom",
-        "France",
-        "Germany",
-        "Japan",
-        "Australia",
-    ],
+    "Fruits": ["Apple", "Banana", "Orange", "Grape", "Strawberry", "Pineapple", "Mango", "Watermelon"],
+    "Animals": ["Lion", "Elephant", "Giraffe", "Monkey", "Zebra", "Tiger", "Bear", "Kangaroo"],
+    "Sports": ["Soccer", "Basketball", "Tennis", "Baseball", "Swimming", "Cycling", "Volleyball", "Golf"],
+    "Countries": ["United States", "Canada", "Brazil", "United Kingdom", "France", "Germany", "Japan", "Australia"],
+    "Food": ["pizza", "sushi", "hamburger", "pasta", "taco", "croissant", "ramen", "curry"],
+    "Movies": ["Titanic", "Inception", "Avatar", "Jaws", "Psycho", "Casablanca", "Alien", "Grease"],
 }
 
 @register_env
 class Chameleon(Environment):
     type_name = "chameleon"
+    backend: TransformersLlamaChat
 
     def __init__(
         self,
         player_configs: List[dict],
         backend: TransformersLlamaChat,
-        topic_codes: Dict[str, List[str]] = None,
+        topic_codes: Optional[Dict[str, List[str]]] = None,
         latent_state_size: int = 3072, #For LLM latent states
         embedding_size: int = 384, #For clue embeddings
         belief_state_size: int = 512, #Belief state size
@@ -85,10 +52,15 @@ class Chameleon(Environment):
             raise ValueError("num_clue_rounds must be >= 1")
         self.num_clue_rounds = num_clue_rounds
 
-        self.backend = TransformersLlamaChat.from_config(backend)
+        if isinstance(backend, TransformersLlamaChat):
+            self.backend: TransformersLlamaChat = backend
+        else:
+            self.backend = TransformersLlamaChat.from_config(backend)
 
         max_num_players = len(player_configs)
         max_num_words = max(len(words) for words in self.topic_codes.values())
+
+        llm_device = next(self.backend.model.parameters()).device
 
         self.shared_belief_updater = nn.GRUCell(
             input_size=(
@@ -97,18 +69,18 @@ class Chameleon(Environment):
                 + self.role_embedding_size
             ),
             hidden_size=self.belief_state_size,
-        )
+        ).to(llm_device)
         self.shared_speaker_embedding = nn.Embedding(
             max_num_players, self.speaker_embedding_size
-        )
-        self.shared_role_embedding = nn.Embedding(2, self.role_embedding_size)
+        ).to(llm_device)
+        self.shared_role_embedding = nn.Embedding(2, self.role_embedding_size).to(llm_device)
 
         self.shared_player_belief_head = nn.Linear(
             self.belief_state_size, max_num_players
-        )
+        ).to(llm_device)
         self.shared_word_belief_head = nn.Linear(
             self.belief_state_size, max_num_words
-        )
+        ).to(llm_device)
 
         self.players = [
             Player(
@@ -158,6 +130,7 @@ class Chameleon(Environment):
     def get_next_player(self) -> str:
         if self._current_phase != "guess":
             return self.player_names[self._next_player_idx]
+        assert self.chameleon_name is not None
         return self.chameleon_name
 
     def reset(self):
@@ -254,6 +227,7 @@ class Chameleon(Environment):
         return ""
 
     def _is_true_code(self, text) -> bool:
+        assert self.code is not None
         pattern = r"\"(.+?)\""
         match = re.search(pattern, text)
         if match:
@@ -283,9 +257,8 @@ class Chameleon(Environment):
         return rewards
 
     def is_terminal(self) -> bool:
-        if self.message_pool.last_message.content.startswith(
-            SIGNAL_END_OF_CONVERSATION
-        ):
+        last = self.message_pool.last_message
+        if last is not None and last.content.startswith(SIGNAL_END_OF_CONVERSATION):
             return True
         return False
 

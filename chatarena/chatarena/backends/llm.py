@@ -82,11 +82,12 @@ class TransformersLlamaChat(IntelligenceBackend):
             device_map = "cpu"
             sentence_encoder_device = "cpu"
 
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, local_files_only=True)
         self.model = AutoModelForCausalLM.from_pretrained(
             self.model_name,
             torch_dtype=dtype,
             device_map=device_map,
+            local_files_only=True,
         )
         self.model.eval()
 
@@ -261,9 +262,8 @@ class TransformersLlamaChat(IntelligenceBackend):
         ref_model = AutoModelForCausalLM.from_pretrained(
             self.model_name,
             torch_dtype=self.model.dtype,
-            device_map={
-                "": next(self.model.parameters()).device
-            },
+            device_map={"": next(self.model.parameters()).device},
+            local_files_only=True,
         )
         ref_model.eval()
         for param in ref_model.parameters():

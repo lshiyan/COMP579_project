@@ -1,1 +1,6 @@
 *.pyc
+__pycache__/
+*.egg-info/
+.venv/
+logs/
+.ipynb_checkpoints/

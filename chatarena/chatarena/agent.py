@@ -18,7 +18,7 @@ SIGNAL_END_OF_CONVERSATION = f"<<<<<<END_OF_CONVERSATION>>>>>>{uuid.uuid4()}"
 class Agent(Configurable):
     @abstractmethod
     def __init__(
-        self, name: str, role_desc: str, global_prompt: str = None, *args, **kwargs
+        self, name: str, role_desc: str, global_prompt: Optional[str] = None, *args, **kwargs
     ):
         super().__init__(
             name=name, role_desc=role_desc, global_prompt=global_prompt, **kwargs
@@ -37,7 +37,7 @@ class Player(Agent):
         role_desc: str,
         backend: Union[BackendConfig, IntelligenceBackend],
         clue_number: int = 3,
-        global_prompt: str = None,
+        global_prompt: Optional[str] = None,
         embedding_size: Optional[int] = None,
         belief_state_size: Optional[int] = None,
         hidden_role: Optional[str] = None,
@@ -103,8 +103,6 @@ class Player(Agent):
 
         self._refresh_index_maps()
 
-        if hidden_role is not None:
-            self.set_hidden_role(hidden_role)
 
     def _refresh_index_maps(self):
         self.agent_to_idx = {agent: i for i, agent in enumerate(self.agents)}
@@ -249,7 +247,7 @@ class Player(Agent):
 
     def get_belief(self, hidden_state):
         logits = self.get_belief_logits(hidden_state)
-        self.beliefs = torch.softmax(logits, dim=-1)
+        self.beliefs = torch.softmax(logits, dim=-1).squeeze(0)
         return self.beliefs
 
     def update_belief_state(

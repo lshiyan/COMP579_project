@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Dict, List, Type
+from typing import Dict, List, Optional, Type
 
 from ..config import BackendConfig, Configurable
 from ..message import Message
@@ -8,8 +8,8 @@ from ..message import Message
 class IntelligenceBackend(Configurable):
     """An abstraction of the intelligence source of the agents."""
 
-    stateful = None
-    type_name = None
+    stateful: Optional[bool] = None
+    type_name: Optional[str] = None
 
     @abstractmethod
     def __init__(self, **kwargs):
@@ -37,8 +37,8 @@ class IntelligenceBackend(Configurable):
         agent_name: str,
         role_desc: str,
         history_messages: List[Message],
-        global_prompt: str = None,
-        request_msg: Message = None,
+        global_prompt: Optional[str] = None,
+        request_msg: Optional[Message] = None,
         *args,
         **kwargs,
     ) -> str:
@@ -50,12 +50,15 @@ class IntelligenceBackend(Configurable):
         agent_name: str,
         role_desc: str,
         history_messages: List[Message],
-        global_prompt: str = None,
-        request_msg: Message = None,
+        global_prompt: Optional[str] = None,
+        request_msg: Optional[Message] = None,
         *args,
         **kwargs,
     ) -> str:
         """Async querying."""
+        raise NotImplementedError
+
+    def get_message_embedding(self, message_text: str):
         raise NotImplementedError
 
     # reset the state of the backend
@@ -71,5 +74,6 @@ BACKEND_REGISTRY: Dict[str, Type[IntelligenceBackend]] = {}
 
 def register_backend(cls: Type[IntelligenceBackend]) -> Type[IntelligenceBackend]:
     """Register a new backend."""
+    assert cls.type_name is not None
     BACKEND_REGISTRY[cls.type_name] = cls
     return cls
