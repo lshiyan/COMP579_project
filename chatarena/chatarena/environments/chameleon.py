@@ -10,6 +10,48 @@ from ..message import Message, MessagePool
 from .base import Environment, TimeStep, register_env
 from ..backends import TransformersLlamaChat
 
+DEFAULT_TOPIC_CODES = {
+    "Fruits": [
+        "Apple",
+        "Banana",
+        "Orange",
+        "Grape",
+        "Strawberry",
+        "Pineapple",
+        "Mango",
+        "Watermelon",
+    ],
+    "Animals": [
+        "Lion",
+        "Elephant",
+        "Giraffe",
+        "Monkey",
+        "Zebra",
+        "Tiger",
+        "Bear",
+        "Kangaroo",
+    ],
+    "Sports": [
+        "Soccer",
+        "Basketball",
+        "Tennis",
+        "Baseball",
+        "Swimming",
+        "Cycling",
+        "Volleyball",
+        "Golf",
+    ],
+    "Countries": [
+        "United States",
+        "Canada",
+        "Brazil",
+        "United Kingdom",
+        "France",
+        "Germany",
+        "Japan",
+        "Australia",
+    ],
+}
 
 @register_env
 class Chameleon(Environment):
@@ -20,8 +62,9 @@ class Chameleon(Environment):
         player_configs: List[dict],
         backend: TransformersLlamaChat,
         topic_codes: Dict[str, List[str]] = None,
-        embedding_size: int = 3072,
-        belief_state_size: int = 512,
+        latent_state_size: int = 3072, #For LLM latent states
+        embedding_size: int = 384, #For clue embeddings
+        belief_state_size: int = 512, #Belief state size
         speaker_embedding_size: int = 64,
         role_embedding_size: int = 16,
         update_speaker_beliefs: bool = False,
@@ -67,8 +110,6 @@ class Chameleon(Environment):
             self.belief_state_size, max_num_words
         )
 
-        self.shared_value_head = nn.Linear(self.belief_state_size, 1)
-
         self.players = [
             Player(
                 name=cfg["name"],
@@ -110,7 +151,7 @@ class Chameleon(Environment):
         self._players_votes = None
         self._initialized = False
 
-        self.total_rewards = []
+        self.rewards = []
 
         self.reset()
 
@@ -181,7 +222,7 @@ class Chameleon(Environment):
 
         self._players_votes = {name: 0 for name in self.player_names}
         self._initialized = True
-        self.total_rewards = []
+        self.rewards = []
 
         return TimeStep(
             observation=self.get_observation(),
@@ -248,9 +289,8 @@ class Chameleon(Environment):
             return True
         return False
 
-    def _encode_message_for_beliefs(self, speaker_name: str, action: str) -> torch.Tensor:
+    def _encode_message_for_beliefs(self, action: str) -> torch.Tensor:
         message_embedding = self.backend.get_message_embedding(
-            speaker_name=speaker_name,
             message_text=action,
         )
 
@@ -260,7 +300,7 @@ class Chameleon(Environment):
         return message_embedding
 
     def _update_beliefs_for_new_clue(self, speaker_name: str, action: str):
-        message_embedding = self._encode_message_for_beliefs(speaker_name, action)
+        message_embedding = self._encode_message_for_beliefs(action)
 
         for player in self.players:
             if not self.update_speaker_beliefs and player.name == speaker_name:
@@ -305,6 +345,41 @@ class Chameleon(Environment):
         belief_reward = alpha * suspicion_reward + (1 - alpha) * word_reward
         return belief_reward
 
+    def evaluate_clue(self, speaker_name: str, action: str):
+        
+        prior_beliefs = {}
+        prior_belief_states = {}
+
+        for player in self.players:
+            belief, belief_state = player.save_beliefs()
+            prior_beliefs[player.name] = belief
+            prior_belief_states[player.name] = belief_state
+
+        self._update_beliefs_for_new_clue(
+            speaker_name=speaker_name,
+            action=action,
+        )
+
+        post_beliefs = {
+            player.name: player.beliefs.clone()
+            for player in self.players
+        }
+
+        if speaker_name != self.chameleon_name:
+            belief_reward = self._compute_belief_reward(
+                speaker_name, prior_beliefs, post_beliefs
+            )
+        else:
+            belief_reward = torch.tensor(0.0)
+
+        for player in self.players:
+            player.set_beliefs(
+                prior_beliefs[player.name],
+                prior_belief_states[player.name],
+            )
+
+        return belief_reward
+                    
     def step(self, player_name: str, action: str) -> TimeStep:
         if not self._initialized:
             self.reset()
@@ -320,28 +395,7 @@ class Chameleon(Environment):
                 turn=self._current_turn,
             )
             self.message_pool.append_message(message)
-
-            prior_beliefs = {
-                player.name: player.beliefs.clone()
-                for player in self.players
-            }
-
-            self._update_beliefs_for_new_clue(
-                speaker_name=player_name,
-                action=action,
-            )
-
-            post_beliefs = {
-                player.name: player.beliefs.clone()
-                for player in self.players
-            }
-
-            if player_name != self.chameleon_name: #Only focus on making non-chameleon's win.
-                belief_reward = self._compute_belief_reward(
-                    player_name, prior_beliefs, post_beliefs
-                )
-                self.total_rewards.append(belief_reward)
-
+            
             self._current_turn += 1
 
             if self._next_player_idx < len(self.player_names) - 1:

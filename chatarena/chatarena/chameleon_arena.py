@@ -2,6 +2,7 @@ import csv
 import json
 import logging
 import uuid
+import torch
 from typing import Dict, List, Union
 
 from .agent import Player
@@ -17,16 +18,18 @@ class ChameleonArena:
     """Utility class that manages the game environment and players."""
 
     def __init__(
-        self, environment: Chameleon, global_prompt: str = None
+        self, environment: Chameleon, global_prompt: str = None, clue_number: int = 3, num_grpo_epochs: int = 10
     ):
         # Create a container for the players and environment and reset the game      
         self.environment = environment
         self.global_prompt = global_prompt
+        self.clue_number = clue_number
 
         self.current_timestep = environment.reset()
         self.uuid = uuid.uuid4()  # Generate a unique id for the game
-        self.invalid_actions_retry = 5
-
+        
+        self.reference_model = self.environment.backend.get_ref_model()
+        self.num_grpo_epochs = num_grpo_epochs
     @property
     def num_players(self):
         return self.environment.num_players
@@ -51,31 +54,107 @@ class ChameleonArena:
         )  # get the observation for the player
 
         timestep = None
-        for i in range(
-            self.invalid_actions_retry
-        ):  # try to take an action for a few times
+        
+        rewards = []
+        responses = []
+        for _ in range(self.clue_number):
+            response = player(observation)  # take an action
+            responses.append(response)
             
-            action, latent_state = player(observation)  # take an action
-            
-            print(action)
-            if self.environment.check_action(action, player_name):  # action is valid
-                timestep = self.environment.step(
-                    player_name, action
-                )  # update the environment
-                break
-            else:  # action is invalid
-                logging.warning(f"{player_name} made an invalid action {action}")
-                continue
+            action = response["action"]
+            with torch.no_grad():
+                reward = self.environment.evaluate_clue(action)
+                rewards.append(reward)
+                
+        rewards_tensor = torch.tensor(rewards, dtype=torch.float32)
+        advantages = (rewards_tensor - rewards_tensor.mean()) / (rewards_tensor.std() + 1e-8)
+        
+        for _ in range(self.num_grpo_epochs):
+            loss = self._compute_grpo_loss(player, responses, advantages)
 
-        if (
-            timestep is None
-        ):  # if the player made invalid actions for too many times, terminate the game
-            warning_msg = f"{player_name} has made invalid actions for {self.invalid_actions_retry} times. Terminating the game."
-            logging.warning(warning_msg)
-            raise TooManyInvalidActions(warning_msg)
-
+            #TODO: Setup PEFT optimizer for backend model.
+            """optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()"""
+        
+        best_idx = advantages.argmax().item()
+        best_action = responses[best_idx]["action"]
+        timestep = self.environment.step(player_name, best_action)
+                
         return timestep
 
+    def _compute_grpo_loss(
+        self,
+        player: Player,
+        responses: list,
+        advantages: torch.Tensor,
+        eps: float = 0.2,
+        beta: float = 0.01,
+    ) -> torch.Tensor:
+        policy_loss = torch.tensor(0.0)
+        kl_loss = torch.tensor(0.0)
+
+        for i, response in enumerate(responses):
+            log_prob_old = response["seq_logprob"].detach()
+
+            log_prob_theta = self._compute_seq_logprob(
+                player.backend.model,
+                prompt_input_ids=response["prompt_input_ids"],
+                prompt_attention_mask=response["prompt_attention_mask"],
+                new_tokens=response["new_tokens"],
+            )
+
+            with torch.no_grad():
+                log_prob_ref = self._compute_seq_logprob(
+                    self.reference_model,
+                    prompt_input_ids=response["prompt_input_ids"],
+                    prompt_attention_mask=response["prompt_attention_mask"],
+                    new_tokens=response["new_tokens"],
+                )
+
+            ratio = torch.exp(log_prob_theta - log_prob_old)
+            adv = advantages[i]
+
+            clipped = torch.clamp(ratio, 1 - eps, 1 + eps)
+            policy_loss = policy_loss - torch.min(ratio * adv, clipped * adv)
+
+            kl = torch.exp(log_prob_ref - log_prob_theta) - log_prob_ref + log_prob_theta - 1
+            kl_loss = kl_loss + kl
+
+        return (policy_loss + beta * kl_loss) / len(responses)
+
+    def _compute_seq_logprob(
+        self,
+        model: torch.nn.Module,
+        prompt_input_ids: torch.Tensor,
+        prompt_attention_mask: torch.Tensor,
+        new_tokens: torch.Tensor,
+    ) -> torch.Tensor:
+        device = next(model.parameters()).device
+        prompt_len = prompt_input_ids.shape[1]
+
+        full_ids = torch.cat(
+            [prompt_input_ids.to(device), new_tokens.to(device)], dim=1
+        )
+        full_mask = torch.cat(
+            [prompt_attention_mask.to(device),
+            torch.ones(1, new_tokens.shape[1], device=device, dtype=torch.long)],
+            dim=1,
+        )
+
+        outputs = model(input_ids=full_ids, attention_mask=full_mask)
+        logits = outputs.logits
+
+        shift_logits = logits[:, prompt_len - 1:-1, :]
+        shift_labels = new_tokens.to(device)
+
+        log_probs = torch.log_softmax(shift_logits, dim=-1)
+        token_log_probs = log_probs.gather(
+            -1, shift_labels.unsqueeze(-1)
+        ).squeeze(-1)
+
+        return token_log_probs.sum(dim=-1)
+    
     def run(self, num_steps: int = 1):
         """Run the game for num_turns."""
         for i in range(num_steps):

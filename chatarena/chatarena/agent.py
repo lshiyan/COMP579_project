@@ -36,6 +36,7 @@ class Player(Agent):
         name: str,
         role_desc: str,
         backend: Union[BackendConfig, IntelligenceBackend],
+        clue_number: int = 3,
         global_prompt: str = None,
         embedding_size: Optional[int] = None,
         belief_state_size: Optional[int] = None,
@@ -71,9 +72,8 @@ class Player(Agent):
 
         self.backend = backend
         self.embedding_size = embedding_size
-        self.belief_state_size = (
-            belief_state_size if belief_state_size is not None else embedding_size
-        )
+        self.belief_state_size = belief_state_size
+        self.clue_number = clue_number
 
         if self.embedding_size is None:
             raise ValueError("embedding_size must be provided.")
@@ -227,18 +227,22 @@ class Player(Agent):
 
         if self.hidden_role == "non_chameleon":
             logits = self.shared_player_belief_head(hidden_state)
-            logits = logits[..., : len(self.agents)]
+            logits = logits[..., :len(self.agents)]
+
+            if logits.dim() == 2 and logits.shape[0] == 1:
+                logits = logits.squeeze(0)
 
             logits = logits.clone()
-            if logits.dim() == 1:
-                logits[self.self_idx] = float("-inf")
-            else:
-                logits[..., self.self_idx] = float("-inf")
+            logits[self.self_idx] = float("-inf")
             return logits
 
         elif self.hidden_role == "chameleon":
             logits = self.shared_word_belief_head(hidden_state)
-            logits = logits[..., : len(self.words)]
+            logits = logits[..., :len(self.words)]
+
+            if logits.dim() == 2 and logits.shape[0] == 1:
+                logits = logits.squeeze(0)
+
             return logits
 
         raise ValueError(f"Unknown hidden_role: {self.hidden_role}")
@@ -313,6 +317,16 @@ class Player(Agent):
         self.get_belief(self.belief_state)
         return self.belief_state, self.beliefs
 
+    def save_beliefs(self):
+        beliefs = self.beliefs.detach().clone()
+        belief_state = self.belief_state.detach().clone()
+        
+        return beliefs, belief_state
+
+    def set_beliefs(self, beliefs: torch.Tensor, belief_state: torch.Tensor):
+        self.beliefs = beliefs
+        self.belief_state = belief_state
+        
     def give_secret_word(self, word: str):
         if word not in self.word_to_idx:
             raise ValueError(f"Unknown word: {word}")
@@ -326,9 +340,9 @@ class Player(Agent):
             global_prompt=self.global_prompt,
         )
 
-    def act(self, observation: List[Message]) -> str:
+    def act(self, observation: List[Message]):
         try:
-            response = self.backend.query(
+            return self.backend.query(
                 agent_name=self.name,
                 role_desc=self.role_desc,
                 history_messages=observation,
@@ -336,37 +350,22 @@ class Player(Agent):
                 request_msg=None,
             )
         except RetryError as e:
-            err_msg = f"Agent {self.name} failed to generate a response. Error: {e.last_attempt.exception()}. Sending signal to end the conversation."
-            logging.warning(err_msg)
-            response = SIGNAL_END_OF_CONVERSATION + err_msg
-
-        return response
-
-    def act_with_latent_states(self, observation: List[Message]):
-        assert isinstance(
-            self.backend, TransformersLlamaChat
-        ), "Agent backend does not support latent states."
-
-        try:
-            response, latent_state = self.backend.query(
-                agent_name=self.name,
-                role_desc=self.role_desc,
-                history_messages=observation,
-                global_prompt=self.global_prompt,
-                request_msg=None,
-                return_latent_state=True,
+            err_msg = (
+                f"Agent {self.name} failed to generate a response. "
+                f"Error: {e.last_attempt.exception()}. "
+                f"Sending signal to end the conversation."
             )
-        except RetryError as e:
-            err_msg = f"Agent {self.name} failed to generate a response. Error: {e.last_attempt.exception()}. Sending signal to end the conversation."
             logging.warning(err_msg)
-            response = SIGNAL_END_OF_CONVERSATION + err_msg
-            latent_state = None
-
-        return response, latent_state
+            return {
+                "response": SIGNAL_END_OF_CONVERSATION + err_msg,
+                "new_tokens": None,
+                "token_logprobs": None,
+                "seq_logprob": None,
+                "prompt_input_ids": None,
+                "prompt_attention_mask": None,
+            }
 
     def __call__(self, observation: List[Message]):
-        if isinstance(self.backend, TransformersLlamaChat):
-            return self.act_with_latent_states(observation)
         return self.act(observation)
 
     def reset(self):
