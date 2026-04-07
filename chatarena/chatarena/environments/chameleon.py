@@ -309,7 +309,24 @@ class Chameleon(Environment):
         belief_reward = alpha * suspicion_reward + (1 - alpha) * word_reward
         return belief_reward
 
-    def evaluate_clue(self, speaker_name: str, action: str, update = False):
+    def compute_belief_ce_loss(self) -> torch.Tensor:
+        ce = nn.CrossEntropyLoss()
+        chameleon_idx = torch.tensor([self.agent_to_idx[self.chameleon_name]])
+        word_idx = torch.tensor([self.word_to_idx[self.code]])
+        device = next(self.backend.model.parameters()).device
+        
+        total_loss = torch.tensor(0.0, device=device)
+        for player in self.players:
+            logits = player.get_belief_logits(player.belief_state)
+            
+            if player.hidden_role == "non_chameleon":
+                total_loss += ce(logits.unsqueeze(0), chameleon_idx.to(device))
+            elif player.hidden_role == "chameleon":
+                total_loss += ce(logits.unsqueeze(0), word_idx.to(device))
+        
+        return total_loss
+    
+    def evaluate_clue(self, speaker_name: str, action: str):
         prior_beliefs = {}
         prior_belief_states = {}
 
@@ -335,12 +352,11 @@ class Chameleon(Environment):
         else:
             belief_reward = torch.tensor(0.0)
 
-        if not update:
-            for player in self.players:
-                player.set_beliefs(
-                    prior_beliefs[player.name],
-                    prior_belief_states[player.name],
-                )
+        for player in self.players:
+            player.set_beliefs(
+                prior_beliefs[player.name],
+                prior_belief_states[player.name],
+            )
 
         return belief_reward
                     
@@ -360,6 +376,11 @@ class Chameleon(Environment):
             )
             
             self.message_pool.append_message(message)
+            
+            self._update_beliefs_for_new_clue(
+                speaker_name=player_name,
+                action=action,
+            )
             
             self._current_turn += 1
 

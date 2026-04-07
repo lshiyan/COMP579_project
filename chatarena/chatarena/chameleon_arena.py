@@ -124,11 +124,14 @@ class ChameleonArena:
         
         #NOTE: I'm skeptical about using two optimizers here. GPT says that the learning signal is already transferred through the belief reward, but we might have to move this
         #to one optimizer if we don't see anything.
+        
+        #The policy optimizer optimizes "Given the message history, what is the best clue to give?"
         self.policy_optimizer = torch.optim.Adam(
             filter(lambda p: p.requires_grad, self.environment.backend.model.parameters()),
             lr=1e-4,
         )
         
+        #The belief optimizer optimizes "Given all the clues, what is the most likely chameleon/secret word?"
         belief_params = (
             list(self.environment.shared_belief_updater.parameters())
             + list(self.environment.shared_speaker_embedding.parameters())
@@ -163,9 +166,10 @@ class ChameleonArena:
         player = self.name_to_player[player_name]
         observation = self.environment.get_observation(player_name)
 
-        rewards = []
-        responses = []
-        if self.environment._current_phase == "give clues":
+
+        if self.environment._current_phase == "give clues" and player_name != self.environment.chameleon_name:
+            rewards = []
+            responses = []
             for _ in range(self.clue_number):
                 response = player(observation)
                 responses.append(response)
@@ -189,15 +193,14 @@ class ChameleonArena:
             best_idx = int(advantages.argmax().item())
             best_action = responses[best_idx]["action"]
             
-            belief_loss = -self.environment.evaluate_clue(player_name, best_action, update = True)
-            
-            self.belief_optimizer.zero_grad()
-            belief_loss.backward()
-            self.belief_optimizer.step()
-
             msg_count_before = len(self.environment.message_pool._messages)
             timestep = self.environment.step(player_name, best_action)
             new_messages = self.environment.message_pool._messages[msg_count_before:]
+
+            belief_loss = self.environment.compute_belief_ce_loss()
+            self.belief_optimizer.zero_grad()
+            belief_loss.backward()
+            self.belief_optimizer.step()
 
             self.logger.log_step(
                 player_name=player_name,
@@ -213,12 +216,15 @@ class ChameleonArena:
 
         else:
             response = player(observation)
-            timestep = self.environment.step(player_name, best_action)
-            
+            action = response["action"]
+            msg_count_before = len(self.environment.message_pool._messages)
+            timestep = self.environment.step(player_name, action)
+            new_messages = self.environment.message_pool._messages[msg_count_before:]
+
             self.logger.log_step(
                 player_name=player_name,
-                responses=responses,
-                grpo_losses=grpo_losses,
+                responses=[response],
+                best_action=action,
                 new_messages=new_messages,
                 terminal_rewards=timestep.reward if timestep.terminal else None,
             )
@@ -256,7 +262,7 @@ class ChameleonArena:
                     new_tokens=response["new_tokens"],
                 ).to(device)
 
-            ratio = torch.exp((log_prob_theta - log_prob_old)) / seq_len
+            ratio = torch.exp((log_prob_theta - log_prob_old))
             adv = advantages[i].to(device)
 
             clipped = torch.clamp(ratio, 1 - eps, 1 + eps)
