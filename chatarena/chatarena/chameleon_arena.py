@@ -211,6 +211,18 @@ class ChameleonArena:
                 terminal_rewards=timestep.reward if timestep.terminal else None,
             )
 
+        else:
+            response = player(observation)
+            timestep = self.environment.step(player_name, best_action)
+            
+            self.logger.log_step(
+                player_name=player_name,
+                responses=responses,
+                grpo_losses=grpo_losses,
+                new_messages=new_messages,
+                terminal_rewards=timestep.reward if timestep.terminal else None,
+            )
+            
         return timestep
 
     def _compute_grpo_loss(
