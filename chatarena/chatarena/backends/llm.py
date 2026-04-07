@@ -10,6 +10,7 @@ from ..message import Message
 from .base import IntelligenceBackend, register_backend
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from sentence_transformers import SentenceTransformer
+from peft import LoraConfig, get_peft_model, TaskType
 
 
 @contextmanager
@@ -41,6 +42,7 @@ class TransformersLlamaChat(IntelligenceBackend):
         do_sample: bool = True,
         sentence_encoder_model: str = "sentence-transformers/all-MiniLM-L6-v2",
         normalize_sentence_embeddings: bool = True,
+        lora_cfg: dict = None,
         **kwargs,
     ):
         super().__init__(
@@ -89,6 +91,18 @@ class TransformersLlamaChat(IntelligenceBackend):
             device_map=device_map,
             local_files_only=True,
         )
+        
+        if lora_cfg is not None:
+            task_type_str = lora_cfg.pop("task_type", "CAUSAL_LM")
+            lora_config = LoraConfig(
+                task_type=TaskType[task_type_str],
+                **lora_cfg
+            )
+            self.model = get_peft_model(self.model, lora_config)
+            self.model.enable_input_require_grads()
+            self.model.gradient_checkpointing_enable()
+            self.model.print_trainable_parameters()
+        
         self.model.eval()
 
         if self.tokenizer.pad_token_id is None:

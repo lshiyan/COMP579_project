@@ -121,6 +121,23 @@ class ChameleonArena:
             chameleon_name=self.environment.chameleon_name,
             player_names=self.environment.player_names,
         )
+        
+        #NOTE: I'm skeptical about using two optimizers here. GPT says that the learning signal is already transferred through the belief reward, but we might have to move this
+        #to one optimizer if we don't see anything.
+        self.policy_optimizer = torch.optim.Adam(
+            filter(lambda p: p.requires_grad, self.environment.backend.model.parameters()),
+            lr=1e-4,
+        )
+        
+        belief_params = (
+            list(self.environment.shared_belief_updater.parameters())
+            + list(self.environment.shared_speaker_embedding.parameters())
+            + list(self.environment.shared_role_embedding.parameters())
+            + list(self.environment.shared_player_belief_head.parameters())
+            + list(self.environment.shared_word_belief_head.parameters())
+        )
+        self.belief_optimizer = torch.optim.Adam(belief_params, lr=1e-3)
+        
     @property
     def num_players(self):
         return self.environment.num_players
@@ -148,45 +165,51 @@ class ChameleonArena:
 
         rewards = []
         responses = []
-        for _ in range(self.clue_number):
-            response = player(observation)
-            responses.append(response)
-            action = response["action"]
-            with torch.no_grad():
-                reward = self.environment.evaluate_clue(player_name, action)
-                rewards.append(reward)
+        if self.environment._current_phase == "give clues":
+            for _ in range(self.clue_number):
+                response = player(observation)
+                responses.append(response)
+                action = response["action"]
+                with torch.no_grad():
+                    reward = self.environment.evaluate_clue(player_name, action)
+                    rewards.append(reward)
 
-        rewards_tensor = torch.tensor(rewards, dtype=torch.float32)
-        advantages = (rewards_tensor - rewards_tensor.mean()) / (rewards_tensor.std() + 1e-8)
+            rewards_tensor = torch.tensor(rewards, dtype=torch.float32)
+            advantages = (rewards_tensor - rewards_tensor.mean()) / (rewards_tensor.std() + 1e-8)
 
-        grpo_losses = []
-        for _ in range(self.num_grpo_epochs):
-            loss = self._compute_grpo_loss(player, responses, advantages)
-            grpo_losses.append(loss.item())
+            grpo_losses = []
+            for _ in range(self.num_grpo_epochs):
+                loss = self._compute_grpo_loss(player, responses, advantages)
+                grpo_losses.append(loss.item())
 
-            #TODO: Setup PEFT optimizer for backend model.
-            """optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()"""
+                self.policy_optimizer.zero_grad()
+                loss.backward()
+                self.policy_optimizer.step()
 
-        best_idx = int(advantages.argmax().item())
-        best_action = responses[best_idx]["action"]
+            best_idx = int(advantages.argmax().item())
+            best_action = responses[best_idx]["action"]
+            
+            belief_loss = -self.environment.evaluate_clue(player_name, best_action, update = True)
+            
+            self.belief_optimizer.zero_grad()
+            belief_loss.backward()
+            self.belief_optimizer.step()
 
-        msg_count_before = len(self.environment.message_pool._messages)
-        timestep = self.environment.step(player_name, best_action)
-        new_messages = self.environment.message_pool._messages[msg_count_before:]
+            msg_count_before = len(self.environment.message_pool._messages)
+            timestep = self.environment.step(player_name, best_action)
+            new_messages = self.environment.message_pool._messages[msg_count_before:]
 
-        self.logger.log_step(
-            player_name=player_name,
-            responses=responses,
-            belief_rewards=[r.item() for r in rewards],
-            advantages=advantages.tolist(),
-            best_idx=best_idx,
-            best_action=best_action,
-            grpo_losses=grpo_losses,
-            new_messages=new_messages,
-            terminal_rewards=timestep.reward if timestep.terminal else None,
-        )
+            self.logger.log_step(
+                player_name=player_name,
+                responses=responses,
+                belief_rewards=[r.item() for r in rewards],
+                advantages=advantages.tolist(),
+                best_idx=best_idx,
+                best_action=best_action,
+                grpo_losses=grpo_losses,
+                new_messages=new_messages,
+                terminal_rewards=timestep.reward if timestep.terminal else None,
+            )
 
         return timestep
 
@@ -203,16 +226,15 @@ class ChameleonArena:
         kl_loss = torch.tensor(0.0, device=device)
 
         for i, response in enumerate(responses):
+            seq_len = response["new_tokens"].shape[1]
             log_prob_old = response["seq_logprob"].detach().to(device)
 
-            # TODO: remove no_grad when optimizer is wired up
-            with torch.no_grad():
-                log_prob_theta = self._compute_seq_logprob(
-                    player.backend.model,
-                    prompt_input_ids=response["prompt_input_ids"],
-                    prompt_attention_mask=response["prompt_attention_mask"],
-                    new_tokens=response["new_tokens"],
-                )
+            log_prob_theta = self._compute_seq_logprob(
+                player.backend.model,
+                prompt_input_ids=response["prompt_input_ids"],
+                prompt_attention_mask=response["prompt_attention_mask"],
+                new_tokens=response["new_tokens"],
+            )
 
             with torch.no_grad():
                 log_prob_ref = self._compute_seq_logprob(
@@ -222,11 +244,11 @@ class ChameleonArena:
                     new_tokens=response["new_tokens"],
                 ).to(device)
 
-            ratio = torch.exp(log_prob_theta - log_prob_old)
+            ratio = torch.exp((log_prob_theta - log_prob_old)) / seq_len
             adv = advantages[i].to(device)
 
             clipped = torch.clamp(ratio, 1 - eps, 1 + eps)
-            policy_loss = policy_loss - torch.min(ratio * adv, clipped * adv)
+            policy_loss = policy_loss - torch.min(ratio * adv, clipped * adv) / seq_len
 
             kl = torch.exp(log_prob_ref - log_prob_theta) - log_prob_ref + log_prob_theta - 1
             kl_loss = kl_loss + kl
