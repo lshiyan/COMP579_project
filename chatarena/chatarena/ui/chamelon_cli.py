@@ -8,7 +8,8 @@ from rich.color import ANSI_COLOR_NAMES
 from rich.console import Console
 from rich.text import Text
 
-from ..arena import Arena, TooManyInvalidActions
+from ..chameleon_arena import ChameleonArena, TooManyInvalidActions
+from ..arena import Arena
 
 ASCII_ART = r"""
 _________  .__               __      _____
@@ -32,7 +33,7 @@ MAX_STEPS = 5
 logging.getLogger().setLevel(logging.ERROR)
 
 
-class ArenaCLI:
+class ChameleonArenaCLI:
     """The CLI user interface for ChatArena."""
 
     def __init__(self, arena: Arena):
@@ -49,8 +50,9 @@ class ArenaCLI:
         timestep = self.arena.reset()
         console.print("🏟 Chat Arena Initialized!", style="bold green")
 
+        print(self.arena)
         env = self.arena.environment
-        players = self.arena.players
+        players = env.players
 
         env_desc = self.arena.global_prompt
         num_players = env.num_players

@@ -21,7 +21,7 @@ DEFAULT_TOPIC_CODES = {
 
 @register_env
 class Chameleon(Environment):
-    type_name = "chameleon"
+    type_name = "chameleon_grpo"
     backend: TransformersHuggingFaceChat
 
     def __init__(

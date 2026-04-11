@@ -1,6 +1,7 @@
 from ..config import EnvironmentConfig
 from .base import ENV_REGISTRY, Environment, TimeStep, register_env
-from .chameleon_grpo import Chameleon
+from .chameleon_grpo import Chameleon as GRPOChameleon
+from .chameleon import Chameleon as Chameleon
 
 
 # Load an environment from a config dictionary

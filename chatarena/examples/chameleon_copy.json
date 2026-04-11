@@ -4,7 +4,7 @@
   "clue_number": 4,
   "num_grpo_epochs": 10,
   "environment": {
-    "env_type": "chameleon",
+    "env_type": "chameleon_grpo",
     "parallel": false,
 
     "backend": {

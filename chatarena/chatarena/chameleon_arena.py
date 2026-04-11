@@ -345,9 +345,9 @@ class ChameleonArena:
 
     def launch_cli(self, max_steps: int = None, interactive: bool = True):
         """Launch the command line interface."""
-        from .ui.cli import ArenaCLI
+        from .ui.chamelon_cli import ChameleonArenaCLI
 
-        cli = ArenaCLI(self)
+        cli = ChameleonArenaCLI(self)
         cli.launch(max_steps=max_steps, interactive=interactive)
 
     def save_config(self, path: str):
