@@ -8,7 +8,7 @@ from datetime import datetime
 import torch
 from typing import Dict, List, Union
 
-from .agent import Player
+from .chameleon_agent import Player
 from .config import ArenaConfig
 from .environments import Environment, TimeStep, load_environment, Chameleon
 
