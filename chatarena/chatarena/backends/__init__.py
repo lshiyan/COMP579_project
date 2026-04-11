@@ -1,7 +1,7 @@
 from ..config import BackendConfig
 from .base import BACKEND_REGISTRY, IntelligenceBackend, register_backend
 from .openai import OpenAIChat
-from .llm import TransformersLlamaChat
+from .llm import TransformersHuggingFaceChat
 
 
 # Load a backend from a config dictionary

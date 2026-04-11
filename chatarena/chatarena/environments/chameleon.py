@@ -8,7 +8,7 @@ import torch.nn as nn
 from ..agent import SIGNAL_END_OF_CONVERSATION, Player
 from ..message import Message, MessagePool
 from .base import Environment, TimeStep, register_env
-from ..backends import TransformersLlamaChat
+from ..backends import TransformersHuggingFaceChat
 
 DEFAULT_TOPIC_CODES = {
     "Fruits": ["Apple", "Banana", "Orange", "Grape", "Strawberry", "Pineapple", "Mango", "Watermelon"],
@@ -22,12 +22,12 @@ DEFAULT_TOPIC_CODES = {
 @register_env
 class Chameleon(Environment):
     type_name = "chameleon"
-    backend: TransformersLlamaChat
+    backend: TransformersHuggingFaceChat
 
     def __init__(
         self,
         player_configs: List[dict],
-        backend: TransformersLlamaChat,
+        backend: TransformersHuggingFaceChat,
         embedding_size: int = 384, #For clue embeddings
         belief_state_size: int = 512, #Belief state size
         speaker_embedding_size: int = 64,
@@ -46,10 +46,10 @@ class Chameleon(Environment):
             raise ValueError("num_clue_rounds must be >= 1")
         self.num_clue_rounds = num_clue_rounds
 
-        if isinstance(backend, TransformersLlamaChat):
-            self.backend: TransformersLlamaChat = backend
+        if isinstance(backend, TransformersHuggingFaceChat):
+            self.backend: TransformersHuggingFaceChat = backend
         else:
-            self.backend = TransformersLlamaChat.from_config(backend)
+            self.backend = TransformersHuggingFaceChat.from_config(backend)
 
         max_num_players = len(player_configs)
         max_num_words = max(len(words) for words in self.topic_codes.values())

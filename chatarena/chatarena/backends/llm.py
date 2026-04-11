@@ -21,16 +21,16 @@ def suppress_stdout_stderr():
 
 
 @register_backend
-class TransformersLlamaChat(IntelligenceBackend):
+class TransformersHuggingFaceChat(IntelligenceBackend):
     """
-    Hugging Face LLaMA-style chat backend for:
+    Hugging Face chat backend for:
     - sampling chat responses
     - returning token-level / sequence-level logprobs
     - encoding messages for belief updates
     """
 
     stateful = False
-    type_name = "transformers:llama-chat"
+    type_name = "transformers:huggingface-chat"
 
     def __init__(
         self,

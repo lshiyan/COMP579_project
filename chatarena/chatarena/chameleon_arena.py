@@ -166,7 +166,6 @@ class ChameleonArena:
         player = self.name_to_player[player_name]
         observation = self.environment.get_observation(player_name)
 
-
         if self.environment._current_phase == "give clues" and player_name != self.environment.chameleon_name:
             rewards = []
             responses = []

@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 from tenacity import RetryError
 
-from .backends import IntelligenceBackend, load_backend, TransformersLlamaChat
+from .backends import IntelligenceBackend, load_backend, TransformersHuggingFaceChat
 from .config import AgentConfig, BackendConfig, Configurable
 from .message import SYSTEM_NAME, Message
 
