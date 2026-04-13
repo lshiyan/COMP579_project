@@ -28,3 +28,5 @@ class ClosedSourceExperiment():
 
         for player in self.arena_config.players:
             player.backend = BackendConfig(BACKEND_CONFIGS[backend_name])
+        
+        self.arena = Arena.from_config(self.arena_config)
