@@ -111,40 +111,28 @@ class Chameleon(Environment):
             if any(candidate in text for candidate in candidates):
                 return name
         return ""
-
-    def _normalize_code(self, text: str) -> str:
-        return text.lower().strip().replace(" ", "").replace(".", "")
-
-    def _extract_guess_from_json(self, text: str) -> Optional[str]:
-        """
-        Expected format:
-        {"guess": "Apple"}
-
-        Returns the guessed code string if valid, else None.
-        """
-        try:
-            payload = json.loads(text)
-        except json.JSONDecodeError:
-            return None
-
-        if not isinstance(payload, dict):
-            return None
-
-        guess = payload.get("guess")
-        if not isinstance(guess, str):
-            return None
-
-        guess = guess.strip()
-        if not guess:
-            return None
-
-        return guess
-
-    def _is_true_code(self, text: str) -> bool:
-        guess = self._extract_guess_from_json(text)
-        if guess is None:
-            return False
-        return self._normalize_code(guess) == self._normalize_code(self.code)
+    
+    def _is_true_code(self, text) -> bool:
+        """Check whether the text is the true code."""
+        # Get the word enclosed by quote marks with regex
+        pattern = r"\"(.+?)\""
+        match = re.search(pattern, text)
+        if match:
+            return match.group(1).lower().replace(" ", "") == self.code.lower().replace(
+                " ", ""
+            )
+        else:
+            # if no quote marks, check whether the last k words match the code
+            words = text.split()
+            if len(words) >= len(self.code.split()):
+                guessed_term = (
+                    "".join(words[-len(self.code.split()) :]).lower().replace(".", "")
+                )
+                return guessed_term == self.code.lower().replace(" ", "").replace(
+                    ".", ""
+                )
+            else:
+                return False
 
     def _moderator_speak(self, text: str, visible_to: Union[str, List[str]] = "all"):
         message = Message(
@@ -219,15 +207,15 @@ class Chameleon(Environment):
             else:
                 accuse_correct, even_vote = True, False
                 max_vote_player = max(self._players_votes, key=self._players_votes.get)
-
-                for name, vote_count in self._players_votes.items():
-                    if name != max_vote_player and vote_count == self._players_votes[max_vote_player]:
+                # detach if other players has the same number of votes
+                for name, vote in self._players_votes.items():
+                    if (
+                        name != max_vote_player
+                        and vote == self._players_votes[max_vote_player]
+                    ):
                         accuse_correct, even_vote = False, True
-
                 if max_vote_player != self.chameleon_name:
                     accuse_correct = False
-
-                self._current_turn += 1
 
                 if not accuse_correct:
                     if even_vote:
@@ -240,54 +228,37 @@ class Chameleon(Environment):
                             f"The most-voted player is {max_vote_player}. The accusation is incorrect. "
                             f"{self.chameleon_name} is the chameleon. {self.chameleon_name} won the game!"
                         )
-
-                    timestep = TimeStep(
-                        observation=self.get_observation(),
-                        reward=self.get_rewards(chameleon_win=True),
-                        terminal=True,
-                        chameleon_won=True,
-                    )
+                    rewards = self.get_rewards(chameleon_win=True)
+                    terminal = True
                 else:
                     self._moderator_speak(
                         f"The accusation is correct! {self.chameleon_name} is the chameleon! "
                         f"Now {self.chameleon_name} can guess the secret code. "
-                        'Respond with ONLY valid JSON in exactly this format: {"guess": "<your guess>"}'
+                        'You should say: I guess the code is "..."'
                     )
                     self._current_phase = "guess"
-                    timestep = TimeStep(
-                        observation=self.get_observation(),
-                        reward=self.get_zero_rewards(),
-                        terminal=False,
-                    )
+                    rewards = self.get_zero_rewards()
+                    terminal = False
+                self._current_turn += 1
 
+                timestep = TimeStep(
+                    observation=self.get_observation(), reward=rewards, terminal=terminal
+                )
         elif self._current_phase == "guess":
+            print(action)
             message = Message(
                 agent_name=player_name,
                 content=action,
                 turn=self._current_turn,
-                visible_to=[player_name],
+                visible_to=player_name,
             )
             self.message_pool.append_message(message)
-
-            parsed_guess = self._extract_guess_from_json(action)
-
-            if parsed_guess is None:
-                self._moderator_speak(
-                    f"{player_name} did not provide a valid JSON guess. "
-                    f"Expected format: {{\"guess\": \"<code>\"}}. "
-                    f"The secret word is {self.code}. {self.non_chameleon_names} won!"
-                )
-                timestep = TimeStep(
-                    observation=self.get_observation(),
-                    reward=self.get_rewards(chameleon_win=False),
-                    terminal=True,
-                    chameleon_won=False,
-                )
-            elif self._normalize_code(parsed_guess) == self._normalize_code(self.code):
+            if self._is_true_code(action):
                 self._moderator_speak(
                     f"{player_name} guessed the code correctly! The secret word is {self.code}. "
                     f"{self.chameleon_name} won!"
                 )
+                
                 timestep = TimeStep(
                     observation=self.get_observation(),
                     reward=self.get_rewards(chameleon_win=True),
