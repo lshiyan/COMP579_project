@@ -1,4 +1,5 @@
-from chatarena.chatarena.chameleon_arena import ChameleonArena
-from chatarena.chatarena.arena import Arena
-arena = Arena.from_config("chatarena/examples/chameleon.json")
-arena.launch_cli(interactive=False, max_steps=20)
+from chatarena.experiments.cs_experiment import ClosedSourceExperiment
+
+cs_experiment = ClosedSourceExperiment("chatarena/examples/chameleon_closed_3p.json", "openai")
+
+

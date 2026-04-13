@@ -82,6 +82,7 @@ class Arena:
         for i in range(num_steps):
             timestep = self.step()
             if timestep.terminal:
+                print(timestep)
                 break
 
     @classmethod

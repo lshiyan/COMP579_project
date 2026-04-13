@@ -3,7 +3,8 @@ import re
 from typing import List
 
 from tenacity import retry, stop_after_attempt, wait_random_exponential
-
+from tenacity import retry, retry_if_exception, stop_after_attempt, wait_random_exponential
+from anthropic import APIStatusError
 from ..message import SYSTEM_NAME as SYSTEM
 from ..message import Message
 from .base import IntelligenceBackend, register_backend
@@ -12,22 +13,20 @@ try:
     import anthropic
 except ImportError:
     is_anthropic_available = False
-    # logging.warning("anthropic package is not installed")
 else:
     anthropic_api_key = os.environ.get("ANTHROPIC_API_KEY")
     if anthropic_api_key is None:
-        # logging.warning("Anthropic API key is not set. Please set the environment variable ANTHROPIC_API_KEY")
         is_anthropic_available = False
     else:
         is_anthropic_available = True
 
 DEFAULT_MAX_TOKENS = 256
-DEFAULT_MODEL = "claude-v1"
+DEFAULT_MODEL = "claude-sonnet-4-20250514"
 
 
 @register_backend
 class Claude(IntelligenceBackend):
-    """Interface to the Claude offered by Anthropic."""
+    """Interface to the Claude models offered by Anthropic."""
 
     stateful = False
     type_name = "claude"
@@ -42,20 +41,21 @@ class Claude(IntelligenceBackend):
 
         self.max_tokens = max_tokens
         self.model = model
+        self.client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
-        self.client = anthropic.Client(os.environ["ANTHROPIC_API_KEY"])
-
-    @retry(stop=stop_after_attempt(6), wait=wait_random_exponential(min=1, max=60))
-    def _get_response(self, prompt: str):
-        response = self.client.completion(
-            prompt=prompt,
-            stop_sequences=[anthropic.HUMAN_PROMPT],
+    @retry(
+        stop=stop_after_attempt(6),
+        wait=wait_random_exponential(min=5, max=60),
+        retry=retry_if_exception(lambda e: isinstance(e, APIStatusError) and e.status_code in {529, 529, 503, 502, 500}),
+    )    
+    def _get_response(self, system_prompt: str, messages: list) -> str:
+        response = self.client.messages.create(
             model=self.model,
-            max_tokens_to_sample=self.max_tokens,
+            max_tokens=self.max_tokens,
+            system=system_prompt,
+            messages=messages,
         )
-
-        response = response["completion"].strip()
-        return response
+        return response.content[0].text.strip()
 
     def query(
         self,
@@ -67,54 +67,45 @@ class Claude(IntelligenceBackend):
         *args,
         **kwargs,
     ) -> str:
-        """
-        Format the input and call the Claude API.
+        # Build system prompt
+        system_parts = []
+        if global_prompt:
+            system_parts.append(global_prompt)
+        system_parts.append(role_desc)
+        system_prompt = "\n\n".join(system_parts)
 
-        args:
-            agent_name: the name of the agent
-            role_desc: the description of the role of the agent
-            env_desc: the description of the environment
-            history_messages: the history of the conversation, or the observation for the agent
-            request_msg: the request from the system to guide the agent's next response
-        """
-        all_messages = (
-            [(SYSTEM, global_prompt), (SYSTEM, role_desc)]
-            if global_prompt
-            else [(SYSTEM, role_desc)]
-        )
+        # Convert history into alternating user/assistant turns
+        # Messages API requires strictly alternating roles
+        messages = []
+        pending_user_parts = []
+
+        def flush_user(parts):
+            if parts:
+                messages.append({"role": "user", "content": "\n".join(parts)})
+            return []
 
         for message in history_messages:
-            all_messages.append((message.agent_name, message.content))
-        if request_msg:
-            all_messages.append((SYSTEM, request_msg.content))
-
-        prompt = ""
-        prev_is_human = False  # Whether the previous message is from human (in anthropic, the human is the user)
-        for i, message in enumerate(all_messages):
-            if i == 0:
-                assert (
-                    message[0] == SYSTEM
-                )  # The first message should be from the system
-
-            if message[0] == agent_name:
-                if prev_is_human:
-                    prompt = f"{prompt}{anthropic.AI_PROMPT} {message[1]}"
-                else:
-                    prompt = f"{prompt}\n\n{message[1]}"
-                prev_is_human = False
+            if message.agent_name == agent_name:
+                pending_user_parts = flush_user(pending_user_parts)
+                messages.append({"role": "assistant", "content": message.content})
             else:
-                if prev_is_human:
-                    prompt = f"{prompt}\n\n[{message[0]}]: {message[1]}"
-                else:
-                    prompt = f"{prompt}{anthropic.HUMAN_PROMPT}\n[{message[0]}]: {message[1]}"
-                prev_is_human = True
-        assert prev_is_human  # The last message should be from the human
-        # Add the AI prompt for Claude to generate the response
-        prompt = f"{prompt}{anthropic.AI_PROMPT}"
+                pending_user_parts.append(f"[{message.agent_name}]: {message.content}")
 
-        response = self._get_response(prompt, *args, **kwargs)
+        flush_user(pending_user_parts)
 
-        # Remove the agent name if the response starts with it
+        # Add the final request message as the last user turn
+        final_parts = []
+        if request_msg:
+            final_parts.append(f"[{SYSTEM}]: {request_msg.content}")
+        if final_parts:
+            messages.append({"role": "user", "content": "\n".join(final_parts)})
+        elif not messages or messages[-1]["role"] == "assistant":
+            # Messages API requires the last message to be from the user
+            messages.append({"role": "user", "content": "Please continue."})
+
+        response = self._get_response(system_prompt, messages, *args, **kwargs)
+
+        # Strip agent name prefix if the model echoes it
         response = re.sub(rf"^\s*\[{agent_name}]:?", "", response).strip()
 
         return response

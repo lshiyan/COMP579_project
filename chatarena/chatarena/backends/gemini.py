@@ -9,26 +9,25 @@ from ..message import Message
 from .base import IntelligenceBackend, register_backend
 
 try:
-    import google.generativeai as genai
+    from google import genai
+    from google.genai import types
 except ImportError:
     is_gemini_available = False
-    # logging.warning("google-generativeai package is not installed")
 else:
     gemini_api_key = os.environ.get("GEMINI_API_KEY")
     if gemini_api_key is None:
-        # logging.warning("Gemini API key is not set. Please set the environment variable GEMINI_API_KEY")
         is_gemini_available = False
     else:
-        genai.configure(api_key=gemini_api_key)
+        _client = genai.Client(api_key=gemini_api_key)
         is_gemini_available = True
 
 DEFAULT_MAX_TOKENS = 256
-DEFAULT_MODEL = "gemini-1.5-flash"
+DEFAULT_MODEL = "gemini-2.0-flash"
 
 
 @register_backend
 class Gemini(IntelligenceBackend):
-    """Interface to the Gemini models offered by Google."""
+    """Interface to the Gemini models using the new google-genai SDK."""
 
     stateful = False
     type_name = "gemini"
@@ -38,29 +37,30 @@ class Gemini(IntelligenceBackend):
     ):
         assert (
             is_gemini_available
-        ), "google-generativeai package is not installed or the API key is not set"
+        ), "google-genai package is not installed or GEMINI_API_KEY is not set"
         super().__init__(max_tokens=max_tokens, model=model, **kwargs)
 
         self.max_tokens = max_tokens
         self.model = model
-
-        self._client = genai.GenerativeModel(
-            model_name=self.model,
-            generation_config=genai.GenerationConfig(max_output_tokens=self.max_tokens),
-        )
+        self.client = _client
 
     @retry(stop=stop_after_attempt(6), wait=wait_random_exponential(min=1, max=60))
     def _get_response(self, system_prompt: str, history: list, last_user_msg: str) -> str:
-        # Gemini supports a system_instruction at the model level, but we pass it
-        # as part of the chat history for compatibility with the base client.
-        client = genai.GenerativeModel(
-            model_name=self.model,
-            generation_config=genai.GenerationConfig(max_output_tokens=self.max_tokens),
-            system_instruction=system_prompt if system_prompt else None,
+        config = types.GenerateContentConfig(
+            system_instruction=system_prompt or None,
+            max_output_tokens=self.max_tokens,
         )
 
-        chat = client.start_chat(history=history)
-        response = chat.send_message(last_user_msg)
+        # Append the final user turn to history for the API call
+        contents = history + [
+            types.Content(role="user", parts=[types.Part(text=last_user_msg)])
+        ]
+
+        response = self.client.models.generate_content(
+            model=self.model,
+            contents=contents,
+            config=config,
+        )
         return response.text.strip()
 
     def query(
@@ -73,57 +73,45 @@ class Gemini(IntelligenceBackend):
         *args,
         **kwargs,
     ) -> str:
-        """
-        Format the input and call the Gemini API.
-
-        args:
-            agent_name: the name of the agent
-            role_desc: the description of the role of the agent
-            history_messages: the history of the conversation, or the observation for the agent
-            request_msg: the request from the system to guide the agent's next response
-        """
-        # Build the system prompt from global_prompt and role_desc
+        # Build system prompt
         system_parts = []
         if global_prompt:
             system_parts.append(global_prompt)
         system_parts.append(role_desc)
         system_prompt = "\n\n".join(system_parts)
 
-        # Convert history_messages into Gemini's chat history format.
-        # Gemini uses alternating "user" / "model" roles.
-        # Messages from agent_name -> "model", everything else -> "user"
-        gemini_history = []
+        # Convert history into new SDK Content objects
+        # Gemini requires strictly alternating user/model turns
+        contents = []
         pending_user_parts = []
 
         def flush_user(parts):
             if parts:
-                gemini_history.append({"role": "user", "parts": ["\n".join(parts)]})
+                contents.append(
+                    types.Content(role="user", parts=[types.Part(text="\n".join(parts))])
+                )
             return []
 
         for message in history_messages:
             if message.agent_name == agent_name:
-                # Flush any accumulated user messages first
                 pending_user_parts = flush_user(pending_user_parts)
-                gemini_history.append(
-                    {"role": "model", "parts": [message.content]}
+                contents.append(
+                    types.Content(role="model", parts=[types.Part(text=message.content)])
                 )
             else:
                 pending_user_parts.append(f"[{message.agent_name}]: {message.content}")
 
-        # Flush remaining user messages before the final turn
-        pending_user_parts = flush_user(pending_user_parts)
+        flush_user(pending_user_parts)
 
         # Build the final user message for this turn
-        final_user_parts = []
+        final_parts = []
         if request_msg:
-            final_user_parts.append(f"[{SYSTEM}]: {request_msg.content}")
+            final_parts.append(f"[{SYSTEM}]: {request_msg.content}")
+        last_user_msg = "\n".join(final_parts) if final_parts else "Please continue."
 
-        # If there's nothing to send as a final user message, use a minimal prompt
-        last_user_msg = "\n".join(final_user_parts) if final_user_parts else "Please continue."
+        response = self._get_response(system_prompt, contents, last_user_msg, *args, **kwargs)
 
-        response = self._get_response(system_prompt, gemini_history, last_user_msg, *args, **kwargs)
-
-        # Remove the agent name if the response starts with it
+        # Strip agent name prefix if the model echoes it
         response = re.sub(rf"^\s*\[{agent_name}]:?", "", response).strip()
 
         return response

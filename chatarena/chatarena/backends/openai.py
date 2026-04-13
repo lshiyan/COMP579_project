@@ -36,7 +36,7 @@ class OpenAIChat(IntelligenceBackend):
     """Interface to the ChatGPT style model with system, user, assistant roles separation."""
 
     stateful = False
-    type_name = "openai-chat"
+    type_name = "openai"
 
     def __init__(
         self,

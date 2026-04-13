@@ -1,6 +1,8 @@
 from ..config import BackendConfig
 from .base import BACKEND_REGISTRY, IntelligenceBackend, register_backend
 from .openai import OpenAIChat
+from .anthropic import Claude
+from .gemini import Gemini
 from .llm import TransformersHuggingFaceChat
 
 

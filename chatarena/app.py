@@ -31,7 +31,7 @@ css = """#col-container {max-width: 90%; margin-left: auto; margin-right: auto; 
 
 DEBUG = False
 
-DEFAULT_BACKEND = "openai-chat"
+DEFAULT_BACKEND = "openai"
 DEFAULT_ENV = "conversation"
 MAX_NUM_PLAYERS = 6
 DEFAULT_NUM_PLAYERS = 2

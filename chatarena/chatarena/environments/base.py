@@ -1,29 +1,50 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Dict, List, Type
+from typing import Dict, List, Type, Optional
 
 from ..config import Configurable, EnvironmentConfig
 from ..message import Message
 from ..utils import AttributedDict
 
 
-@dataclass
 class TimeStep(AttributedDict):
     """
     Represents a single step in time within the simulation.
-
-    It includes observation, reward, and terminal state.
-
-    Attributes:
-        observation (List[Message]): A list of messages (observations) for the current timestep.
-        reward (Dict[str, float]): A dictionary with player names as keys and corresponding rewards as values.
-        terminal (bool): A boolean indicating whether the current state is terminal (end of episode).
     """
 
-    observation: List[Message]
-    reward: Dict[str, float]
-    terminal: bool
+    def __init__(
+        self,
+        observation: List[Message],
+        reward: Dict[str, float],
+        terminal: bool,
+        chameleon_won: Optional[bool] = None,
+    ):
+        super().__init__(
+            observation=observation,
+            reward=reward,
+            terminal=terminal,
+            chameleon_won=chameleon_won,
+        )
 
+    def __str__(self):
+        lines = []
+        lines.append("TimeStep")
+        lines.append(f"  terminal = {self.terminal}")
+        lines.append(f"  reward = {self.reward}")
+        lines.append(f"  chameleon_won = {self.chameleon_won}")
+        lines.append("  observation:")
+
+        for i, msg in enumerate(self.observation, 1):
+            visible = msg.visible_to
+            lines.append(
+                f"    [{i}] ({msg.agent_name}, turn={msg.turn}, visible_to={visible})"
+            )
+            lines.append(f"        {msg.content}")
+
+        return "\n".join(lines)
+
+    def __repr__(self):
+        return self.__str__()
 
 class Environment(Configurable):
     """
