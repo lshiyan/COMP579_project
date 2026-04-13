@@ -10,7 +10,6 @@
       "name": "Player 1",
       "role_desc": "You are Player 1.\nThe Moderator will tell you whether you are the chameleon.\nYou're playing with two other players.\nDo not pretend you are other players or the moderator.\nYou cannot vote for yourself.\nYou don't need to prepend your player name to your response, despite others may do it.\nAlways end your response with <EOS>.",
       "backend": {
-        "backend_type": "openai-chat",
         "temperature": 0.7,
         "max_tokens": 50
       }
@@ -19,7 +18,6 @@
       "name": "Player 2",
       "role_desc": "You are Player 2.\nThe Moderator will tell you whether you are the chameleon.\nYou're playing with two other players.\nDo not pretend you are other players or the moderator.\nYou cannot vote for yourself.\nYou don't need to prepend your player name to your response, despite others may do it.\nAlways end your response with <EOS>.",
       "backend": {
-        "backend_type": "openai-chat",
         "temperature": 0.7,
         "max_tokens": 50
       }
@@ -28,7 +26,6 @@
       "name": "Player 3",
       "role_desc": "You are Player 3.\nThe Moderator will tell you whether you are the chameleon.\nYou're playing with two other players.\nDo not pretend you are other players or the moderator.\nYou cannot vote for yourself.\nYou don't need to prepend your player name to your response, despite others may do it.\nAlways end your response with <EOS>.",
       "backend": {
-        "backend_type": "openai-chat",
         "temperature": 0.7,
         "max_tokens": 50
       }
