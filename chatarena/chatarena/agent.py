@@ -120,6 +120,10 @@ class Player(Agent):
             logging.warning(err_msg)
             response = SIGNAL_END_OF_CONVERSATION + err_msg
 
+        # HuggingFace backends return a dict; extract the action string
+        if isinstance(response, dict):
+            response = response["action"]
+
         return response
 
     def __call__(self, observation: List[Message]) -> str:

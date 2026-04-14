@@ -22,7 +22,7 @@ else:
         is_gemini_available = True
 
 DEFAULT_MAX_TOKENS = 256
-DEFAULT_MODEL = "gemini-2.0-flash"
+DEFAULT_MODEL = "gemini-2.5-flash"
 
 
 @register_backend
