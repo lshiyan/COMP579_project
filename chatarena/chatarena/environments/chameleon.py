@@ -113,26 +113,10 @@ class Chameleon(Environment):
         return ""
     
     def _is_true_code(self, text) -> bool:
-        """Check whether the text is the true code."""
-        # Get the word enclosed by quote marks with regex
-        pattern = r"\"(.+?)\""
-        match = re.search(pattern, text)
-        if match:
-            return match.group(1).lower().replace(" ", "") == self.code.lower().replace(
-                " ", ""
-            )
-        else:
-            # if no quote marks, check whether the last k words match the code
-            words = text.split()
-            if len(words) >= len(self.code.split()):
-                guessed_term = (
-                    "".join(words[-len(self.code.split()) :]).lower().replace(".", "")
-                )
-                return guessed_term == self.code.lower().replace(" ", "").replace(
-                    ".", ""
-                )
-            else:
-                return False
+        """Check whether the text contains the true code."""
+        normalized_text = re.sub(r"\W+", "", text.lower())
+        normalized_code = re.sub(r"\W+", "", self.code.lower())
+        return normalized_code in normalized_text
 
     def _moderator_speak(self, text: str, visible_to: Union[str, List[str]] = "all"):
         message = Message(
@@ -223,6 +207,10 @@ class Chameleon(Environment):
                             f"There are even votes. The accusation does not stand. "
                             f"{self.chameleon_name} is the chameleon. {self.chameleon_name} won the game!"
                         )
+                        
+                        rewards = self.get_rewards(chameleon_win=True)
+                        terminal = True
+                        
                     else:
                         self._moderator_speak(
                             f"The most-voted player is {max_vote_player}. The accusation is incorrect. "
@@ -232,7 +220,7 @@ class Chameleon(Environment):
                     terminal = True
                     
                     timestep = TimeStep(
-                        observation=self.get_observation(), reward=rewards, terminal=terminal, chameleon_won=True
+                        observation=self.get_observation(), reward=rewards, terminal=terminal, chameleon_won=True, win_method="chameleon-votes"
                     )
                 else:
                     self._moderator_speak(
@@ -268,6 +256,7 @@ class Chameleon(Environment):
                     reward=self.get_rewards(chameleon_win=True),
                     terminal=True,
                     chameleon_won=True,
+                    win_method="chameleon-guess"
                 )
             else:
                 self._moderator_speak(
@@ -279,6 +268,7 @@ class Chameleon(Environment):
                     reward=self.get_rewards(chameleon_win=False),
                     terminal=True,
                     chameleon_won=False,
+                    win_method="non-chameleon"
                 )
 
         else:

@@ -4,6 +4,7 @@ import os
 import sys
 from pathlib import Path
 from typing import Any
+from collections import Counter
 
 from ..chatarena.arena import Arena
 from ..chatarena.config import ArenaConfig, BackendConfig
@@ -163,6 +164,7 @@ class ClosedSourceExperiment:
         return {
             "run_idx": run_idx,
             "chameleon_won": None if final_timestep is None else getattr(final_timestep, "chameleon_won", None),
+            "win_method": None if final_timestep is None else getattr(final_timestep, "win_method", None),
         }
 
     def run_once(self, run_idx: int) -> dict[str, Any]:
@@ -188,10 +190,11 @@ class ClosedSourceExperiment:
 
         result = self._extract_run_result(final_timestep, run_idx)
         self.logger.info(
-            "Finished run %d/%d | chameleon_won=%s",
+            "Finished run %d/%d | chameleon_won=%s | win_method=%s",
             run_idx,
             self.num_runs,
             result["chameleon_won"],
+            result["win_method"]
         )
         return result
 
@@ -243,6 +246,8 @@ class ClosedSourceExperiment:
         non_chameleon_wins = sum(r["chameleon_won"] is False for r in results)
         unknown = sum(r["chameleon_won"] is None for r in results)
 
+        win_method_counts = Counter(r.get("win_method") or "unknown" for r in results)
+
         with open(path, "w", encoding="utf-8") as f:
             f.write(f"experiment_id: {stem}\n")
             f.write(f"backend: {self.backend_name}\n")
@@ -250,10 +255,17 @@ class ClosedSourceExperiment:
             f.write(f"chameleon_wins: {chameleon_wins}\n")
             f.write(f"non_chameleon_wins: {non_chameleon_wins}\n")
             f.write(f"unknown: {unknown}\n")
+
+            f.write("\nwin_method_summary:\n")
+            for method, count in sorted(win_method_counts.items()):
+                f.write(f"  {method}: {count}\n")
+
             f.write("\nper_run_results:\n")
             for r in results:
                 f.write(
-                    f"  run={r['run_idx']}, chameleon_won={r['chameleon_won']}\n"
+                    f"  run={r['run_idx']}, "
+                    f"chameleon_won={r.get('chameleon_won')}, "
+                    f"win_method={r.get('win_method')}\n"
                 )
 
         self.logger.info("Summary saved → %s", path)
