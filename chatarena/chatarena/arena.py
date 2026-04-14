@@ -80,11 +80,13 @@ class Arena:
 
     def run(self, num_steps: int = 1):
         """Run the game for num_turns."""
+        final_timestep = None
         for i in range(num_steps):
             timestep = self.step()
             if timestep.terminal:
-                print(timestep)
+                final_timestep = timestep
                 break
+        return final_timestep
 
     @classmethod
     def from_config(cls, config: Union[str, ArenaConfig]):

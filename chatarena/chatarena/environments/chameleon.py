@@ -230,6 +230,10 @@ class Chameleon(Environment):
                         )
                     rewards = self.get_rewards(chameleon_win=True)
                     terminal = True
+                    
+                    timestep = TimeStep(
+                        observation=self.get_observation(), reward=rewards, terminal=terminal, chameleon_won=True
+                    )
                 else:
                     self._moderator_speak(
                         f"The accusation is correct! {self.chameleon_name} is the chameleon! "
@@ -239,13 +243,13 @@ class Chameleon(Environment):
                     self._current_phase = "guess"
                     rewards = self.get_zero_rewards()
                     terminal = False
+                    
+                    timestep = TimeStep(
+                        observation=self.get_observation(), reward=rewards, terminal=terminal
+                    )
                 self._current_turn += 1
 
-                timestep = TimeStep(
-                    observation=self.get_observation(), reward=rewards, terminal=terminal
-                )
         elif self._current_phase == "guess":
-            print(action)
             message = Message(
                 agent_name=player_name,
                 content=action,
