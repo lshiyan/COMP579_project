@@ -20,9 +20,8 @@ else:
     else:
         is_anthropic_available = True
 
-DEFAULT_MAX_TOKENS = 256
-DEFAULT_MODEL = "claude-sonnet-4-20250514"
-
+DEFAULT_MAX_TOKENS = 512
+DEFAULT_MODEL = "claude-sonnet-4-6"
 
 @register_backend
 class Claude(IntelligenceBackend):

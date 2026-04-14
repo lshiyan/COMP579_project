@@ -18,12 +18,14 @@ class TimeStep(AttributedDict):
         reward: Dict[str, float],
         terminal: bool,
         chameleon_won: Optional[bool] = None,
+        win_method: Optional[str] = None
     ):
         super().__init__(
             observation=observation,
             reward=reward,
             terminal=terminal,
             chameleon_won=chameleon_won,
+            win_method = win_method
         )
 
     def __str__(self):
@@ -32,6 +34,7 @@ class TimeStep(AttributedDict):
         lines.append(f"  terminal = {self.terminal}")
         lines.append(f"  reward = {self.reward}")
         lines.append(f"  chameleon_won = {self.chameleon_won}")
+        lines.append(f"  win_method = {self.chameleon_won}")
         lines.append("  observation:")
 
         for i, msg in enumerate(self.observation, 1):
