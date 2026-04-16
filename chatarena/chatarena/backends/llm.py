@@ -84,12 +84,19 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
             device_map = "cpu"
             sentence_encoder_device = "cpu"
 
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, local_files_only=True)
+        # Resolve to a local snapshot path first (avoids transformers 5.x
+        # hang with local_files_only=True while still using the cache).
+        try:
+            from huggingface_hub import snapshot_download
+            resolved_path = snapshot_download(self.model_name, local_files_only=True)
+        except Exception:
+            resolved_path = self.model_name  # fallback: let transformers download
+
+        self.tokenizer = AutoTokenizer.from_pretrained(resolved_path)
         self.model = AutoModelForCausalLM.from_pretrained(
-            self.model_name,
+            resolved_path,
             torch_dtype=dtype,
             device_map=device_map,
-            local_files_only=True,
         )
         
         if lora_cfg is not None:
@@ -273,11 +280,15 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
         return out
 
     def get_ref_model(self) -> AutoModelForCausalLM:
+        try:
+            from huggingface_hub import snapshot_download
+            resolved_path = snapshot_download(self.model_name, local_files_only=True)
+        except Exception:
+            resolved_path = self.model_name
         ref_model = AutoModelForCausalLM.from_pretrained(
-            self.model_name,
+            resolved_path,
             torch_dtype=self.model.dtype,
             device_map={"": next(self.model.parameters()).device},
-            local_files_only=True,
         )
         ref_model.eval()
         for param in ref_model.parameters():

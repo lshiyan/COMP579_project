@@ -2,35 +2,33 @@ import argparse
 import logging
 import os
 import sys
+from collections import Counter
 from pathlib import Path
 from typing import Any
-from collections import Counter
 
+from ..chatarena.agent import Player
 from ..chatarena.arena import Arena
+from ..chatarena.backends import load_backend
 from ..chatarena.config import ArenaConfig, BackendConfig
+from ..chatarena.environments import load_environment
 
-BACKEND_CONFIGS = {
-    "openai": {
-        "backend_type": "openai",
-        "temperature": 0.9,
-        "max_tokens": 100,
-    },
-    "claude": {
-        "backend_type": "claude",
-        "temperature": 0.9,
-        "max_tokens": 100,
-    },
-    "gemini": {
-        "backend_type": "gemini",
-        "temperature": 0.9,
-        "max_output_tokens": 100,
-    },
+
+DEFAULT_MODEL = "Qwen/Qwen2.5-1.5B-Instruct"
+
+BACKEND_CONFIG = {
+    "backend_type": "transformers:huggingface-chat",
+    "model": DEFAULT_MODEL,
+    "device": 0,
+    "torch_dtype": "bfloat16",
+    "max_new_tokens": 128,
+    "temperature": 0.7,
+    "do_sample": True,
 }
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Run a closed-source LLM experiment in ChatArena.",
+        description="Run an open-source LLM experiment in ChatArena.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
@@ -38,37 +36,70 @@ def build_parser() -> argparse.ArgumentParser:
         "--experiment",
         required=True,
         metavar="FILE",
-        help="Path to the arena config file (JSON/YAML).",
+        help="Path to the arena config file (JSON).",
     )
+
     parser.add_argument(
         "--experiment-id",
         required=True,
         help="Name of experiment",
     )
+
     parser.add_argument(
-        "--backend",
-        required=True,
-        choices=list(BACKEND_CONFIGS.keys()),
-        help="Which closed-source backend to assign to every player.",
+        "--model",
+        default=DEFAULT_MODEL,
+        help="HuggingFace model name or local path.",
     )
+
+    parser.add_argument(
+        "--device",
+        type=int,
+        default=0,
+        help="CUDA device index (-1 for CPU).",
+    )
+
+    parser.add_argument(
+        "--torch-dtype",
+        default="bfloat16",
+        choices=["auto", "float16", "bfloat16", "float32"],
+        help="Torch dtype for model loading.",
+    )
+
+    parser.add_argument(
+        "--max-new-tokens",
+        type=int,
+        default=128,
+        help="Maximum new tokens to generate per turn.",
+    )
+
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        default=0.7,
+        help="Sampling temperature.",
+    )
+
     parser.add_argument(
         "--num_runs",
         type=int,
-        required=True,
+        default=1,
         help="Number of experiment runs.",
     )
+
     parser.add_argument(
         "--log-dir",
         default="logs",
         metavar="DIR",
         help="Directory where experiment logs are written.",
     )
+
     parser.add_argument(
         "--log-level",
         default="INFO",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         help="Verbosity of console output.",
     )
+
     parser.add_argument(
         "--save-transcript",
         action="store_true",
@@ -79,7 +110,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def setup_logging(log_dir: str, experiment_id: str | None, level: str) -> logging.Logger:
-    logger = logging.getLogger(f"closed_source_experiment.{experiment_id or 'run'}")
+    logger = logging.getLogger(f"open_source_experiment.{experiment_id or 'run'}")
     logger.setLevel(getattr(logging, level))
     logger.propagate = False
 
@@ -102,16 +133,18 @@ def setup_logging(log_dir: str, experiment_id: str | None, level: str) -> loggin
     return logger
 
 
-class ClosedSourceExperiment:
+class OpenSourceExperiment:
     def __init__(
         self,
         experiment_filepath: str,
-        backend_name: str,
+        model: str = DEFAULT_MODEL,
+        device: int = 0,
+        torch_dtype: str = "bfloat16",
+        max_new_tokens: int = 128,
+        temperature: float = 0.7,
         experiment_id: str | None = None,
         num_runs: int = 1,
         max_steps: int | None = 50,
-        temperature: float | None = None,
-        max_tokens: int | None = None,
         log_dir: str = "logs",
         log_level: str = "INFO",
         save_transcript: bool = False,
@@ -120,45 +153,58 @@ class ClosedSourceExperiment:
             raise ValueError("num_runs must be at least 1")
 
         self.experiment_filepath = experiment_filepath
-        self.backend_name = backend_name
+        self.model_name = model
         self.experiment_id = experiment_id
         self.num_runs = num_runs
         self.max_steps = max_steps
         self.save_transcript = save_transcript
         self.log_dir = log_dir
-        self.log_level = log_level
-        self.temperature = temperature
-        self.max_tokens = max_tokens
 
         self.logger = setup_logging(log_dir, experiment_id, log_level)
         self.logger.info("Loading config from %s", experiment_filepath)
 
         self.arena_config = ArenaConfig.load(experiment_filepath)
 
-        self.backend_cfg = dict(BACKEND_CONFIGS[backend_name])
-        if temperature is not None:
-            self.backend_cfg["temperature"] = temperature
-            self.logger.debug("Temperature overridden → %.2f", temperature)
-        if max_tokens is not None:
-            token_key = "max_output_tokens" if backend_name == "gemini" else "max_tokens"
-            self.backend_cfg[token_key] = max_tokens
-            self.logger.debug("Token limit overridden → %d", max_tokens)
+        backend_cfg = dict(BACKEND_CONFIG)
+        backend_cfg["model"] = model
+        backend_cfg["device"] = device
+        backend_cfg["torch_dtype"] = torch_dtype
+        backend_cfg["max_new_tokens"] = max_new_tokens
+        backend_cfg["temperature"] = temperature
 
-        self._apply_backend_config()
+        self.logger.info("Loading model %s on device %d ...", model, device)
+        self.shared_backend = load_backend(BackendConfig(backend_cfg))
+        self.logger.info("Model loaded.")
+
         self.logger.info(
-            "Experiment ready | backend=%s | players=%d | runs=%d",
-            backend_name,
+            "Experiment ready | model=%s | device=%d | players=%d | runs=%d",
+            model,
+            device,
             len(self.arena_config.players),
             self.num_runs,
         )
 
-    def _apply_backend_config(self) -> None:
-        for player in self.arena_config.players:
-            player.backend = BackendConfig(dict(self.backend_cfg))
-
     def _build_arena(self) -> Arena:
-        self._apply_backend_config()
-        return Arena.from_config(self.arena_config)
+        """Build a fresh Arena where all players share the pre-loaded backend."""
+        global_prompt = self.arena_config.get("global_prompt", None)
+
+        players = []
+        for player_config in self.arena_config.players:
+            if global_prompt is not None:
+                player_config["global_prompt"] = global_prompt
+            player = Player(
+                name=player_config["name"],
+                role_desc=player_config["role_desc"],
+                backend=self.shared_backend,
+                global_prompt=player_config.get("global_prompt"),
+            )
+            players.append(player)
+
+        player_names = [p.name for p in players]
+        self.arena_config.environment["player_names"] = player_names
+        env = load_environment(self.arena_config.environment)
+
+        return Arena(players, env, global_prompt=global_prompt)
 
     def _extract_run_result(self, final_timestep: Any, run_idx: int) -> dict[str, Any]:
         return {
@@ -193,7 +239,7 @@ class ClosedSourceExperiment:
             run_idx,
             self.num_runs,
             result["chameleon_won"],
-            result["win_method"]
+            result["win_method"],
         )
         return result
 
@@ -253,7 +299,7 @@ class ClosedSourceExperiment:
 
         with open(path, "w", encoding="utf-8") as f:
             f.write(f"experiment_id: {stem}\n")
-            f.write(f"backend: {self.backend_name}\n")
+            f.write(f"model: {self.model_name}\n")
             f.write(f"total_runs: {total}\n")
             f.write(f"chameleon_wins: {chameleon_wins}\n")
             f.write(f"non_chameleon_wins: {non_chameleon_wins}\n")
@@ -274,12 +320,16 @@ class ClosedSourceExperiment:
         self.logger.info("Summary saved → %s", path)
 
     @classmethod
-    def from_args(cls, argv: list[str] | None = None) -> "ClosedSourceExperiment":
+    def from_args(cls, argv: list[str] | None = None) -> "OpenSourceExperiment":
         parser = build_parser()
         args = parser.parse_args(argv)
         return cls(
             experiment_filepath=args.experiment,
-            backend_name=args.backend,
+            model=args.model,
+            device=args.device,
+            torch_dtype=args.torch_dtype,
+            max_new_tokens=args.max_new_tokens,
+            temperature=args.temperature,
             experiment_id=args.experiment_id,
             num_runs=args.num_runs,
             log_dir=args.log_dir,
@@ -289,5 +339,5 @@ class ClosedSourceExperiment:
 
 
 if __name__ == "__main__":
-    exp = ClosedSourceExperiment.from_args()
+    exp = OpenSourceExperiment.from_args()
     exp.run()
