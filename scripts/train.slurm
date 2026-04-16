@@ -28,7 +28,7 @@ mkdir -p "$HF_HOME"
 echo "Downloading models to $HF_HOME (tmpfs/RAM) ..."
 python -c "
 from huggingface_hub import snapshot_download
-snapshot_download('Qwen/Qwen2.5-1.5B-Instruct')
+snapshot_download('Qwen/Qwen2.5-7B-Instruct')
 snapshot_download('sentence-transformers/all-MiniLM-L6-v2')
 print('Models ready.')
 "
@@ -44,16 +44,12 @@ nvidia-smi
 echo "================"
 
 # ── Run experiment ──
-python -c "
-from chatarena.experiments.os_experiment import OpenSourceExperiment
-exp = OpenSourceExperiment(
-    'chatarena/examples/chameleon_closed_3p.json',
-    model='Qwen/Qwen2.5-1.5B-Instruct',
-    device=0,
-    experiment_id='qwen-mimi-test',
-)
-exp.run()
-"
+python run_experiment.py os \
+    --model Qwen/Qwen2.5-7B-Instruct \
+    --device 0 \
+    --num-runs 10 \
+    --experiment-id "qwen-${SLURM_JOB_ID}" \
+    --save-transcript
 
 # ── Cleanup shared memory ──
 rm -rf "$HF_HOME"

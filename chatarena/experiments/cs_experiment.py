@@ -168,7 +168,6 @@ class ClosedSourceExperiment:
         }
 
     def run_once(self, run_idx: int) -> dict[str, Any]:
-        run_name = f"{self.experiment_id or 'run'}_run{run_idx:03d}"
         self.logger.info(
             "Starting run %d/%d (max_steps=%s)",
             run_idx,
@@ -186,7 +185,7 @@ class ClosedSourceExperiment:
             raise
         finally:
             if self.save_transcript:
-                self._save_transcript(arena, run_name)
+                self._save_transcript(arena, run_idx)
 
         result = self._extract_run_result(final_timestep, run_idx)
         self.logger.info(
@@ -208,7 +207,8 @@ class ClosedSourceExperiment:
         self._save_summary(results)
         return results
 
-    def _save_transcript(self, arena: Arena, stem: str) -> None:
+    def _save_transcript(self, arena: Arena, run_idx: int) -> None:
+        stem = self.experiment_id or "run"
         path = os.path.join(self.log_dir, f"{stem}_transcript.txt")
 
         messages = getattr(arena, "messages", None)
@@ -217,7 +217,10 @@ class ClosedSourceExperiment:
             pool = getattr(env, "message_pool", None)
             messages = getattr(pool, "get_all_messages", lambda: [])()
 
-        with open(path, "w", encoding="utf-8") as f:
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(f"\n{'=' * 60}\n")
+            f.write(f"  GAME {run_idx}/{self.num_runs}\n")
+            f.write(f"{'=' * 60}\n\n")
             for msg in messages:
                 f.write(f"{msg}\n")
 

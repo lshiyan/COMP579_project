@@ -20,11 +20,14 @@ class TooManyInvalidActions(Exception):
 
 
 class RunLogger:
-    def __init__(self, log_dir: str = "logs"):
+    def __init__(self, log_dir: str = "logs", log_path: str | None = None):
         os.makedirs(log_dir, exist_ok=True)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.path = os.path.join(log_dir, f"run_{timestamp}.log")
-        self._file = open(self.path, "w")
+        if log_path is None:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            self.path = os.path.join(log_dir, f"run_{timestamp}.log")
+        else:
+            self.path = log_path
+        self._file = open(self.path, "a")
         self._game_num = 0
         self._write("=" * WIDTH)
         self._write(f"  RUN STARTED: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -101,7 +104,8 @@ class ChameleonArena:
     """Utility class that manages the game environment and players."""
 
     def __init__(
-        self, environment: Chameleon, global_prompt: str = None, clue_number: int = 3, num_grpo_epochs: int = 10
+        self, environment: Chameleon, global_prompt: str = None, clue_number: int = 3, num_grpo_epochs: int = 10,
+        logger: RunLogger | None = None,
     ):
         # Create a container for the players and environment and reset the game
         self.environment = environment
@@ -114,7 +118,7 @@ class ChameleonArena:
         self.reference_model = self.environment.backend.get_ref_model()
         self.num_grpo_epochs = num_grpo_epochs
 
-        self.logger = RunLogger()
+        self.logger = logger if logger is not None else RunLogger()
         self.logger.log_game_start(
             topic=self.environment.topic,
             code=self.environment.code,
@@ -312,7 +316,7 @@ class ChameleonArena:
                 break
 
     @classmethod
-    def from_config(cls, config: Union[str, ArenaConfig]):
+    def from_config(cls, config: Union[str, ArenaConfig], logger: RunLogger | None = None):
         """Create an arena from a config."""
         if isinstance(config, str):
             config = ArenaConfig.load(config)
@@ -334,7 +338,7 @@ class ChameleonArena:
 
         clue_number = config.get("clue_number", 3)
         num_grpo_epochs = config.get("num_grpo_epochs", 10)
-        return cls(env, global_prompt=global_prompt, clue_number=clue_number, num_grpo_epochs=num_grpo_epochs)
+        return cls(env, global_prompt=global_prompt, clue_number=clue_number, num_grpo_epochs=num_grpo_epochs, logger=logger)
 
     def to_config(self) -> ArenaConfig:
         """Convert the arena to a config."""
