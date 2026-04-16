@@ -207,6 +207,9 @@ class Chameleon(Environment):
             player_name,
             turn=self._current_turn,
         )
+    
+    def get_votes(self):
+        return self._players_votes
 
     def _text2vote(self, text) -> str:
         text = text.lower()

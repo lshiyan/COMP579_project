@@ -1,5 +1,6 @@
 import logging
 import re
+import random
 import uuid
 from abc import abstractmethod
 from typing import List, Union, Sequence, Optional
@@ -362,6 +363,20 @@ class Player(Agent):
                 "prompt_input_ids": None,
                 "prompt_attention_mask": None,
             }
+    
+    def vote(self, cur_votes: dict):
+        voted_player = ""
+        if self.hidden_role == "chameleon":
+            voted_player = random.choice([player for player in cur_votes.keys() if player != self.name])
+        else:
+            sampled_idx = torch.multinomial(self.beliefs, num_samples=1).item()
+            voted_player = self.agents[sampled_idx]
+        return voted_player
+
+    def guess(self):
+        sampled_idx = torch.multinomial(self.beliefs, num_samples=1).item()
+        guessed_word = self.words[sampled_idx]
+        return guessed_word
 
     def __call__(self, observation: List[Message]):
         return self.act(observation)

@@ -213,7 +213,7 @@ class ChameleonArena:
                 terminal_rewards=timestep.reward if timestep.terminal else None,
             )
 
-        else:
+        elif self.environment._current_phase == "give clues" and player_name == self.environment.chameleon_name:
             response = player(observation)
             action = response["action"]
             msg_count_before = len(self.environment.message_pool._messages)
@@ -227,7 +227,40 @@ class ChameleonArena:
                 new_messages=new_messages,
                 terminal_rewards=timestep.reward if timestep.terminal else None,
             )
+        
+        elif self.environment._current_phase == "give clues":
+            cur_votes = self.environment.get_votes()
+            voted_player = player.vote(cur_votes)
             
+            action = f"I vote for {voted_player}."
+            
+            msg_count_before = len(self.environment.message_pool._messages)
+            timestep = self.environment.step(player_name, action)
+            new_messages = self.environment.message_pool._messages[msg_count_before:]
+
+            self.logger.log_step(
+                player_name=player_name,
+                best_action=action,
+                new_messages=new_messages,
+                terminal_rewards=timestep.reward if timestep.terminal else None,
+            )
+        
+        elif self.environment._current_phase == "guess":
+            guessed_word = player.guess()
+            
+            action = f"I guess the secret word is {guessed_word}."
+            
+            msg_count_before = len(self.environment.message_pool._messages)
+            timestep = self.environment.step(player_name, action)
+            new_messages = self.environment.message_pool._messages[msg_count_before:]
+
+            self.logger.log_step(
+                player_name=player_name,
+                best_action=action,
+                new_messages=new_messages,
+                terminal_rewards=timestep.reward if timestep.terminal else None,
+            )
+        
         return timestep
 
     def _compute_grpo_loss(
