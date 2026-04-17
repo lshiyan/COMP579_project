@@ -37,7 +37,7 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
         model: str,
         device: int = -1,
         torch_dtype: str = "auto",
-        max_new_tokens: int = 128,
+        max_new_tokens: int = 16, # IMPORTANT: Controls how many words can be in the clue.
         temperature: float = 0.7,
         do_sample: bool = True,
         sentence_encoder_model: str = "sentence-transformers/all-MiniLM-L6-v2",

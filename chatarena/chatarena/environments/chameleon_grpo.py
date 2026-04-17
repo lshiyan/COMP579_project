@@ -175,6 +175,7 @@ class Chameleon(Environment):
             f"Now everyone gives {self.num_clue_rounds} clue round(s) "
             f"(but don't give away the secret word). "
             f"You cannot repeat what others have said. "
+            f"IMPORTANT: Try to keep clues 10 words or less."
             f"We will start with {self.player_names[0]}. "
             f"Round 1/{self.num_clue_rounds}."
         )
