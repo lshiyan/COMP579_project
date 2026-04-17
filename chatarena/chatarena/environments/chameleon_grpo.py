@@ -457,6 +457,10 @@ class Chameleon(Environment):
                         )
                     rewards = self.get_rewards(chameleon_win=True)
                     terminal = True
+                    
+                    timestep = TimeStep(
+                        observation=self.get_observation(), reward=rewards, terminal=terminal, chameleon_won=True, win_method="chameleon-votes"
+                    )
                 else:
                     self._moderator_speak(
                         f"The accusation is correct! {self.chameleon_name} is the chameleon! "
@@ -466,14 +470,12 @@ class Chameleon(Environment):
                     self._current_phase = "guess"
                     rewards = self.get_zero_rewards()
                     terminal = False
+                    
+                    timestep = TimeStep(
+                        observation=self.get_observation(), reward=rewards, terminal=terminal
+                    )
 
                 self._current_turn += 1
-
-            timestep = TimeStep(
-                observation=self.get_observation(),
-                reward=rewards,
-                terminal=terminal,
-            )
 
         elif self._current_phase == "guess":
             message = Message(
@@ -490,6 +492,15 @@ class Chameleon(Environment):
                     f"{self.chameleon_name} won!"
                 )
                 rewards = self.get_rewards(chameleon_win=True)
+                
+                timestep = TimeStep(
+                    observation=self.get_observation(),
+                    reward=self.get_rewards(chameleon_win=True),
+                    terminal=True,
+                    chameleon_won=True,
+                    win_method="chameleon-guess"
+                )
+                
             else:
                 self._moderator_speak(
                     f"{player_name} guessed the code wrong! The secret word is {self.code}. "
@@ -497,11 +508,13 @@ class Chameleon(Environment):
                 )
                 rewards = self.get_rewards(chameleon_win=False)
 
-            timestep = TimeStep(
-                observation=self.get_observation(),
-                reward=rewards,
-                terminal=True,
-            )
+                timestep = TimeStep(
+                    observation=self.get_observation(),
+                    reward=self.get_rewards(chameleon_win=False),
+                    terminal=True,
+                    chameleon_won=False,
+                    win_method="non-chameleon"
+                )
 
         else:
             raise ValueError(f"Unknown phase: {self._current_phase}")
