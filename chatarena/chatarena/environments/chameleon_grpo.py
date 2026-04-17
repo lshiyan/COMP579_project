@@ -31,7 +31,6 @@ class Chameleon(Environment):
         embedding_size: int = 384, #For clue embeddings
         belief_state_size: int = 512, #Belief state size
         speaker_embedding_size: int = 64,
-        role_embedding_size: int = 16,
         num_clue_rounds: int = 1,
         **kwargs,
     ):
@@ -40,7 +39,6 @@ class Chameleon(Environment):
         self.embedding_size = embedding_size
         self.belief_state_size = belief_state_size
         self.speaker_embedding_size = speaker_embedding_size
-        self.role_embedding_size = role_embedding_size
 
         if num_clue_rounds < 1:
             raise ValueError("num_clue_rounds must be >= 1")
@@ -60,15 +58,12 @@ class Chameleon(Environment):
             input_size=(
                 self.embedding_size
                 + self.speaker_embedding_size
-                + self.role_embedding_size
             ),
             hidden_size=self.belief_state_size,
         ).to(llm_device)
         self.shared_speaker_embedding = nn.Embedding(
             max_num_players, self.speaker_embedding_size
         ).to(llm_device)
-        self.shared_role_embedding = nn.Embedding(2, self.role_embedding_size).to(llm_device)
-
         self.shared_player_belief_head = nn.Linear(
             self.belief_state_size, max_num_players
         ).to(llm_device)
@@ -88,7 +83,6 @@ class Chameleon(Environment):
                 shared_word_belief_head=self.shared_word_belief_head,
                 shared_belief_updater=self.shared_belief_updater,
                 shared_speaker_embedding=self.shared_speaker_embedding,
-                shared_role_embedding=self.shared_role_embedding,
             )
             for cfg in player_configs
         ]
@@ -146,7 +140,6 @@ class Chameleon(Environment):
             player.set_shared_belief_modules(
                 self.shared_belief_updater,
                 self.shared_speaker_embedding,
-                self.shared_role_embedding,
             )
 
             if player.name != self.chameleon_name:

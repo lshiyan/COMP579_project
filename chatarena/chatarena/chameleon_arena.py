@@ -139,7 +139,6 @@ class ChameleonArena:
         belief_params = (
             list(self.environment.shared_belief_updater.parameters())
             + list(self.environment.shared_speaker_embedding.parameters())
-            + list(self.environment.shared_role_embedding.parameters())
             + list(self.environment.shared_player_belief_head.parameters())
             + list(self.environment.shared_word_belief_head.parameters())
         )

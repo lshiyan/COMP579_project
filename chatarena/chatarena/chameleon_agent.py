@@ -46,7 +46,6 @@ class Player(Agent):
         shared_word_belief_head=None,
         shared_belief_updater=None,
         shared_speaker_embedding=None,
-        shared_role_embedding=None,
         **kwargs,
     ):
         if isinstance(backend, BackendConfig):
@@ -97,7 +96,6 @@ class Player(Agent):
         self.shared_word_belief_head = shared_word_belief_head
         self.shared_belief_updater = shared_belief_updater
         self.shared_speaker_embedding = shared_speaker_embedding
-        self.shared_role_embedding = shared_role_embedding
 
         # Per-player recurrent belief state
         self.belief_state: Optional[torch.Tensor] = None
@@ -126,11 +124,9 @@ class Player(Agent):
         self,
         belief_updater,
         speaker_embedding,
-        role_embedding,
     ):
         self.shared_belief_updater = belief_updater
         self.shared_speaker_embedding = speaker_embedding
-        self.shared_role_embedding = role_embedding
 
     def set_hidden_role(self, hidden_role: str, agents: List[str], words: List[str]):
         if hidden_role not in self.VALID_HIDDEN_ROLES:
@@ -162,8 +158,6 @@ class Player(Agent):
             raise ValueError("shared_belief_updater has not been set.")
         if self.shared_speaker_embedding is None:
             raise ValueError("shared_speaker_embedding has not been set.")
-        if self.shared_role_embedding is None:
-            raise ValueError("shared_role_embedding has not been set.")
 
         self.reset_beliefs()
 
@@ -173,7 +167,6 @@ class Player(Agent):
             self.shared_player_belief_head,
             self.shared_word_belief_head,
             self.shared_speaker_embedding,
-            self.shared_role_embedding,
         ]
         for module in modules:
             if module is not None:
@@ -296,15 +289,10 @@ class Player(Agent):
         speaker_idx = torch.tensor(
             [self.agent_to_idx[speaker_name]], dtype=torch.long, device=device
         )
-        role_idx = torch.tensor(
-            [self._get_role_id()], dtype=torch.long, device=device
-        )
 
         speaker_emb = self.shared_speaker_embedding(speaker_idx)
-        role_emb = self.shared_role_embedding(role_idx)
-
         updater_input = torch.cat(
-            [message_embedding, speaker_emb, role_emb],
+            [message_embedding, speaker_emb],
             dim=-1,
         )
 
