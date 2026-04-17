@@ -54,13 +54,22 @@ class Chameleon(Environment):
 
         llm_device = next(self.backend.model.parameters()).device
 
-        self.shared_belief_updater = nn.GRUCell(
+        self.chameleon_belief_updater = nn.GRUCell(
             input_size=(
                 self.embedding_size
                 + self.speaker_embedding_size
             ),
             hidden_size=self.belief_state_size,
         ).to(llm_device)
+        
+        self.non_chameleon_belif_updater = nn.GRUCell(
+            input_size=(
+                self.embedding_size*2
+                + self.speaker_embedding_size
+            ),
+            hidden_size=self.belief_state_size,
+        ).to(llm_device)
+        
         self.shared_speaker_embedding = nn.Embedding(
             max_num_players, self.speaker_embedding_size
         ).to(llm_device)
@@ -81,7 +90,6 @@ class Chameleon(Environment):
                 belief_state_size=self.belief_state_size,
                 shared_player_belief_head=self.shared_player_belief_head,
                 shared_word_belief_head=self.shared_word_belief_head,
-                shared_belief_updater=self.shared_belief_updater,
                 shared_speaker_embedding=self.shared_speaker_embedding,
             )
             for cfg in player_configs
@@ -103,6 +111,8 @@ class Chameleon(Environment):
         self.chameleon_name = None
         self.non_chameleon_names = None
         self.word_to_idx = None
+        self.secret_word_embedding = None
+
 
         self._current_turn = 0
         self._next_player_idx = 0
@@ -125,6 +135,7 @@ class Chameleon(Environment):
         self.topic = random.choice(list(self.topic_codes.keys()))
         self.code = random.choice(self.topic_codes[self.topic])
         self.chameleon_name = random.choice(self.player_names)
+        self.secret_word_embedding = self.backend.get_message_embedding(f"Topic: {self.topic}, Word: {self.word}")
         self.non_chameleon_names = [
             name for name in self.player_names if name != self.chameleon_name
         ]
@@ -133,15 +144,7 @@ class Chameleon(Environment):
         self.word_to_idx = {word: i for i, word in enumerate(current_words)}
 
         for player in self.players:
-            player.set_shared_belief_heads(
-                self.shared_player_belief_head,
-                self.shared_word_belief_head,
-            )
-            player.set_shared_belief_modules(
-                self.shared_belief_updater,
-                self.shared_speaker_embedding,
-            )
-
+            
             if player.name != self.chameleon_name:
                 player.set_hidden_role(
                     "non_chameleon",
@@ -154,6 +157,16 @@ class Chameleon(Environment):
                     self.player_names,
                     current_words,
                 )
+                
+            player.set_shared_belief_heads(
+                self.shared_player_belief_head,
+                self.shared_word_belief_head,
+            )
+            player.set_shared_belief_modules(
+                self.shared_speaker_embedding,
+                self.non_chameleon_belif_updater,
+                self.chameleon_belief_updater
+            )
 
         self._current_turn = 0
         self._next_player_idx = 0
@@ -171,13 +184,21 @@ class Chameleon(Environment):
             "You are the chameleon!",
             visible_to=self.chameleon_name,
         )
-        self._moderator_speak(
+        
+        clue_message = (
             f"Now everyone gives {self.num_clue_rounds} clue round(s) "
             f"(but don't give away the secret word). "
-            f"You cannot repeat what others have said. "
-            f"IMPORTANT: Try to keep clues 10 words or less."
+            f"You cannot repeat what others have said.\n\n"
+            f"IMPORTANT RULE:\n"
+            f"Your clue MUST contain AT MOST 10 words.\n"
+            f"If your response exceeds 10 words, it will be considered INVALID.\n"
+            f"Output ONLY the clue. Do not explain.\n\n"
             f"We will start with {self.player_names[0]}. "
             f"Round 1/{self.num_clue_rounds}."
+        )
+        
+        self._moderator_speak(
+            clue_message
         )
         self._current_turn = 1
 
@@ -270,6 +291,7 @@ class Chameleon(Environment):
             player.update_belief_state(
                 message_embedding=message_embedding,
                 speaker_name=speaker_name,
+                word_embedding=self.secret_word_embedding
             )
 
     def _compute_belief_reward(

@@ -41,10 +41,8 @@ class Player(Agent):
         global_prompt: Optional[str] = None,
         embedding_size: Optional[int] = None,
         belief_state_size: Optional[int] = None,
-        hidden_role: Optional[str] = None,
         shared_player_belief_head=None,
         shared_word_belief_head=None,
-        shared_belief_updater=None,
         shared_speaker_embedding=None,
         **kwargs,
     ):
@@ -94,7 +92,6 @@ class Player(Agent):
         # Shared heads / modules owned by environment
         self.shared_player_belief_head = shared_player_belief_head
         self.shared_word_belief_head = shared_word_belief_head
-        self.shared_belief_updater = shared_belief_updater
         self.shared_speaker_embedding = shared_speaker_embedding
 
         # Per-player recurrent belief state
@@ -122,10 +119,14 @@ class Player(Agent):
 
     def set_shared_belief_modules(
         self,
-        belief_updater,
         speaker_embedding,
+        chameleon_belief_updater,
+        non_chameleon_belief_updater
     ):
-        self.shared_belief_updater = belief_updater
+        if self.hidden_role == "chameleon":
+            self.shared_belief_updater = chameleon_belief_updater
+        else:
+            self.shared_belief_updater = non_chameleon_belief_updater
         self.shared_speaker_embedding = speaker_embedding
 
     def set_hidden_role(self, hidden_role: str, agents: List[str], words: List[str]):
@@ -141,8 +142,6 @@ class Player(Agent):
         if hidden_role == "chameleon":
             if len(self.words) == 0:
                 raise ValueError("words must be set before assigning role 'chameleon'.")
-            if self.shared_word_belief_head is None:
-                raise ValueError("shared_word_belief_head has not been set.")
 
         elif hidden_role == "non_chameleon":
             if len(self.agents) == 0:
@@ -151,14 +150,6 @@ class Player(Agent):
                 raise ValueError(
                     f"Player {self.name} must appear in agents before assigning role 'non_chameleon'."
                 )
-            if self.shared_player_belief_head is None:
-                raise ValueError("shared_player_belief_head has not been set.")
-
-        if self.shared_belief_updater is None:
-            raise ValueError("shared_belief_updater has not been set.")
-        if self.shared_speaker_embedding is None:
-            raise ValueError("shared_speaker_embedding has not been set.")
-
         self.reset_beliefs()
 
     def _get_device(self) -> torch.device:
@@ -248,6 +239,7 @@ class Player(Agent):
         self,
         message_embedding: torch.Tensor,
         speaker_name: str,
+        word_embedding: torch.Tensor,
     ):
         """
         Update this player's recurrent belief state from a new observed message embedding.
@@ -292,10 +284,16 @@ class Player(Agent):
 
         speaker_emb = self.shared_speaker_embedding(speaker_idx)
         updater_input = torch.cat(
-            [message_embedding, speaker_emb],
+            [message_embedding,speaker_emb],
             dim=-1,
         )
 
+        if self.hidden_role == "non_chameleon":
+            updater_input = torch.cat(
+                [updater_input, word_embedding],
+                dim = -1
+            )
+            
         self.belief_state = self.shared_belief_updater(
             updater_input,
             self.belief_state,

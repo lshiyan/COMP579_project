@@ -137,7 +137,8 @@ class ChameleonArena:
         
         #The belief optimizer optimizes "Given all the clues, what is the most likely chameleon/secret word?"
         belief_params = (
-            list(self.environment.shared_belief_updater.parameters())
+            list(self.environment.chameleon_belief_updater.parameters())
+            + list(self.environment.non_chameleon_belief_updater.parameters())
             + list(self.environment.shared_speaker_embedding.parameters())
             + list(self.environment.shared_player_belief_head.parameters())
             + list(self.environment.shared_word_belief_head.parameters())
