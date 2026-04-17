@@ -232,7 +232,7 @@ class ChameleonArena:
                 terminal_rewards=timestep.reward if timestep.terminal else None,
             )
         
-        elif self.environment._current_phase == "give clues":
+        elif self.environment._current_phase == "accuse":
             cur_votes = self.environment.get_votes()
             voted_player = player.vote(cur_votes)
             
