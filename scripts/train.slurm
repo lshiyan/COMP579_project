@@ -49,7 +49,7 @@ echo "================"
 NUM_RUNS=${NUM_RUNS:-10}
 
 # ── Run experiment ──
-python run_experiment.py os \
+python run_experiment.py grpo \
     --model Qwen/Qwen2.5-7B-Instruct \
     --device 0 \
     --num-runs "$NUM_RUNS" \

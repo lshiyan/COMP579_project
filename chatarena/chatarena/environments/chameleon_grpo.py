@@ -148,7 +148,7 @@ class Chameleon(Environment):
         self.topic = random.choice(list(self.topic_codes.keys()))
         self.code = random.choice(self.topic_codes[self.topic])
         self.chameleon_name = random.choice(self.player_names)
-        self.secret_word_embedding = self.backend.get_message_embedding(f"Topic: {self.topic}, Word: {self.word}")
+        self.secret_word_embedding = self.backend.get_message_embedding(f"Topic: {self.topic}, Word: {self.code}")
         self.non_chameleon_names = [
             name for name in self.player_names if name != self.chameleon_name
         ]
@@ -465,6 +465,9 @@ class Chameleon(Environment):
                 self._next_player_idx += 1
                 rewards = self.get_zero_rewards()
                 terminal = False
+                timestep = TimeStep(
+                    observation=self.get_observation(), reward=rewards, terminal=terminal
+                )
             else:
                 accuse_correct, even_vote = True, False
                 max_vote_player = max(self._players_votes, key=self._players_votes.get)

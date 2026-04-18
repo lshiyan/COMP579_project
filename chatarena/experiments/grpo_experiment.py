@@ -135,29 +135,11 @@ class GRPOExperiment:
             logger=run_logger,
         )
 
-    def _extract_run_result(self, arena: ChameleonArena, run_idx: int) -> dict[str, Any]:
-        env = arena.environment
-        chameleon_won = None
-        win_method = None
-
-        last_msg = env.message_pool.last_message
-        if last_msg is not None:
-            content = last_msg.content.lower()
-            if "won the game" in content or "won!" in content:
-                if env.chameleon_name.lower() in content and "won" in content:
-                    chameleon_won = True
-                    if "guessed the code correctly" in content:
-                        win_method = "chameleon-guess"
-                    else:
-                        win_method = "chameleon-votes"
-                else:
-                    chameleon_won = False
-                    win_method = "non-chameleon"
-
+    def _extract_run_result(self, final_timestep: Any, run_idx: int) -> dict[str, Any]:
         return {
             "run_idx": run_idx,
-            "chameleon_won": chameleon_won,
-            "win_method": win_method,
+            "chameleon_won": None if final_timestep is None else getattr(final_timestep, "chameleon_won", None),
+            "win_method": None if final_timestep is None else getattr(final_timestep, "win_method", None),
         }
 
     def run_once(self, arena: ChameleonArena, run_idx: int) -> dict[str, Any]:
@@ -168,15 +150,16 @@ class GRPOExperiment:
 
         arena.reset()
         t0 = time.monotonic()
+        final_timestep = None
 
         try:
-            arena.run(num_steps=self.max_steps)
+            final_timestep = arena.run(num_steps=self.max_steps)
         except KeyboardInterrupt:
             self.logger.warning("Run %d interrupted by user.", run_idx)
             raise
 
         elapsed = time.monotonic() - t0
-        result = self._extract_run_result(arena, run_idx)
+        result = self._extract_run_result(final_timestep, run_idx)
         result["elapsed_s"] = round(elapsed, 2)
 
         if self.save_transcript:

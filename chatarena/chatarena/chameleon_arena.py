@@ -60,6 +60,8 @@ class RunLogger:
         advantages: list = None,
         best_idx: int = 0,
         grpo_losses: list = None,
+        belief_loss: float = None,
+        post_clue_beliefs: dict = None,
     ):
         self._write()
         self._write(f"  [ {player_name} ]")
@@ -70,6 +72,14 @@ class RunLogger:
                 self._write(f"    Attempt {i + 1}  belief_reward={reward:+.4f}  advantage={adv:+.4f}")
                 self._write(f"      \"{action_preview}\"")
             self._write(f"    >> Best attempt {best_idx + 1}: \"{best_action.replace(chr(10), ' ').strip()[:120]}\"")
+
+            rewards_t = torch.as_tensor(belief_rewards, dtype=torch.float32)
+            mean = rewards_t.mean().item()
+            std = rewards_t.std().item() if rewards_t.numel() > 1 else 0.0
+            chosen = belief_rewards[best_idx]
+            self._write(
+                f"    Belief reward: mean={mean:+.4f}  std={std:.4f}  chosen={chosen:+.4f}"
+            )
         else:
             action_preview = best_action.replace("\n", " ").strip()[:120]
             self._write(f"    Action: \"{action_preview}\"")
@@ -77,6 +87,16 @@ class RunLogger:
         if grpo_losses:
             loss_parts = "  ".join(f"e{i+1}:{l:.4f}" for i, l in enumerate(grpo_losses))
             self._write(f"    GRPO losses: {loss_parts}")
+
+        if belief_loss is not None:
+            self._write(f"    Belief CE loss: {belief_loss:.4f}")
+
+        if post_clue_beliefs:
+            self._write(f"    Post-clue beliefs:")
+            for pname, dist in post_clue_beliefs.items():
+                sorted_d = sorted(dist.items(), key=lambda x: x[1], reverse=True)
+                parts = [f"{n}:{p:.3f}" for n, p in sorted_d if p > 1e-3]
+                self._write(f"      {pname}: [{', '.join(parts)}]")
 
         if new_messages:
             self._write()
@@ -209,6 +229,17 @@ class ChameleonArena:
         )
         return self.current_timestep
 
+    def _collect_non_chameleon_beliefs(self) -> dict:
+        out = {}
+        for p in self.environment.players:
+            if p.hidden_role == "non_chameleon" and p.beliefs is not None:
+                beliefs = p.beliefs.detach()
+                out[p.name] = {
+                    self.environment.player_names[i]: beliefs[i].item()
+                    for i in range(len(self.environment.player_names))
+                }
+        return out
+
     def step(self) -> TimeStep:
         """Take a step in the game: one player takes an action and the environment updates."""
         player_name = self.environment.get_next_player()
@@ -259,6 +290,8 @@ class ChameleonArena:
                 best_idx=best_idx,
                 best_action=best_action,
                 grpo_losses=grpo_losses,
+                belief_loss=belief_loss.item(),
+                post_clue_beliefs=self._collect_non_chameleon_beliefs(),
                 new_messages=new_messages,
                 terminal_rewards=timestep.reward if timestep.terminal else None,
             )
@@ -280,6 +313,8 @@ class ChameleonArena:
             self.logger.log_step(
                 player_name=player_name,
                 best_action=action,
+                belief_loss=belief_loss.item(),
+                post_clue_beliefs=self._collect_non_chameleon_beliefs(),
                 new_messages=new_messages,
                 terminal_rewards=timestep.reward if timestep.terminal else None,
             )
@@ -294,6 +329,7 @@ class ChameleonArena:
             self.logger.log_step(
                 player_name=player_name,
                 best_action=action,
+                post_clue_beliefs=self._collect_non_chameleon_beliefs(),
                 new_messages=new_messages,
                 terminal_rewards=timestep.reward if timestep.terminal else None,
             )
@@ -414,11 +450,13 @@ class ChameleonArena:
         return token_log_probs.sum(dim=-1)
     
     def run(self, num_steps: int = 1):
-        """Run the game for num_turns."""
+        """Run the game for num_turns. Returns the final timestep."""
+        timestep = None
         for i in range(num_steps):
             timestep = self.step()
             if timestep.terminal:
                 break
+        return timestep
 
     @classmethod
     def from_config(cls, config: Union[str, ArenaConfig], logger: RunLogger | None = None):
