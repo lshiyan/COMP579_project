@@ -288,7 +288,7 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
         ref_model = AutoModelForCausalLM.from_pretrained(
             resolved_path,
             torch_dtype=self.model.dtype,
-            device_map={"": next(self.model.parameters()).device},
+            device_map={"": "cpu"},
         )
         ref_model.eval()
         for param in ref_model.parameters():
