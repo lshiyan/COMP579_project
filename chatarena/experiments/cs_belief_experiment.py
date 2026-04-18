@@ -1,14 +1,18 @@
-import argparse
+"""Closed-source experiment using belief-based voting via ChameleonArena."""
 import logging
 import os
 import sys
 import time
+from collections import Counter
 from pathlib import Path
 from typing import Any
-from collections import Counter
 
-from ..chatarena.arena import Arena
+from sentence_transformers import SentenceTransformer
+
+from ..chatarena.chameleon_arena import ChameleonArena, RunLogger
 from ..chatarena.config import ArenaConfig, BackendConfig
+from ..chatarena.environments.chameleon_grpo import Chameleon
+
 
 BACKEND_CONFIGS = {
     "openai": {
@@ -29,58 +33,8 @@ BACKEND_CONFIGS = {
 }
 
 
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description="Run a closed-source LLM experiment in ChatArena.",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-    )
-
-    parser.add_argument(
-        "--experiment",
-        required=True,
-        metavar="FILE",
-        help="Path to the arena config file (JSON/YAML).",
-    )
-    parser.add_argument(
-        "--experiment-id",
-        required=True,
-        help="Name of experiment",
-    )
-    parser.add_argument(
-        "--backend",
-        required=True,
-        choices=list(BACKEND_CONFIGS.keys()),
-        help="Which closed-source backend to assign to every player.",
-    )
-    parser.add_argument(
-        "--num_runs",
-        type=int,
-        required=True,
-        help="Number of experiment runs.",
-    )
-    parser.add_argument(
-        "--log-dir",
-        default="logs",
-        metavar="DIR",
-        help="Directory where experiment logs are written.",
-    )
-    parser.add_argument(
-        "--log-level",
-        default="INFO",
-        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
-        help="Verbosity of console output.",
-    )
-    parser.add_argument(
-        "--save-transcript",
-        action="store_true",
-        help="Write the full conversation transcript to --log-dir.",
-    )
-
-    return parser
-
-
 def setup_logging(log_dir: str, experiment_id: str | None, level: str) -> logging.Logger:
-    logger = logging.getLogger(f"closed_source_experiment.{experiment_id or 'run'}")
+    logger = logging.getLogger(f"cs_belief_experiment.{experiment_id or 'run'}")
     logger.setLevel(getattr(logging, level))
     logger.propagate = False
 
@@ -103,7 +57,7 @@ def setup_logging(log_dir: str, experiment_id: str | None, level: str) -> loggin
     return logger
 
 
-class ClosedSourceExperiment:
+class CSBeliefExperiment:
     def __init__(
         self,
         experiment_filepath: str,
@@ -127,100 +81,132 @@ class ClosedSourceExperiment:
         self.max_steps = max_steps
         self.save_transcript = save_transcript
         self.log_dir = log_dir
-        self.log_level = log_level
-        self.temperature = temperature
-        self.max_tokens = max_tokens
 
         self.logger = setup_logging(log_dir, experiment_id, log_level)
         self.logger.info("Loading config from %s", experiment_filepath)
 
         self.arena_config = ArenaConfig.load(experiment_filepath)
 
-        self.backend_cfg = dict(BACKEND_CONFIGS[backend_name])
+        # Build the API backend config
+        self.api_backend_cfg = dict(BACKEND_CONFIGS[backend_name])
         if temperature is not None:
-            self.backend_cfg["temperature"] = temperature
-            self.logger.debug("Temperature overridden → %.2f", temperature)
+            self.api_backend_cfg["temperature"] = temperature
         if max_tokens is not None:
             token_key = "max_output_tokens" if backend_name == "gemini" else "max_tokens"
-            self.backend_cfg[token_key] = max_tokens
-            self.logger.debug("Token limit overridden → %d", max_tokens)
+            self.api_backend_cfg[token_key] = max_tokens
 
-        self._apply_backend_config()
+        # Load standalone sentence encoder for belief embeddings
+        self.logger.info("Loading sentence encoder ...")
+        self.sentence_encoder = SentenceTransformer(
+            "sentence-transformers/all-MiniLM-L6-v2",
+        )
+        self.logger.info("Sentence encoder loaded.")
+
+        # Build player configs with API backend
+        global_prompt = self.arena_config.get("global_prompt", None)
+        self.player_configs = []
+        for player_config in self.arena_config.players:
+            pc = dict(player_config)
+            pc["backend"] = BackendConfig(dict(self.api_backend_cfg))
+            if global_prompt is not None:
+                pc["global_prompt"] = global_prompt
+            self.player_configs.append(pc)
+
+        self.global_prompt = global_prompt
+
         self.logger.info(
-            "Experiment ready | backend=%s | players=%d | runs=%d",
-            backend_name,
-            len(self.arena_config.players),
-            self.num_runs,
+            "CS belief experiment ready | backend=%s | players=%d | runs=%d",
+            backend_name, len(self.player_configs), self.num_runs,
         )
 
-    def _apply_backend_config(self) -> None:
-        for player in self.arena_config.players:
-            player.backend = BackendConfig(dict(self.backend_cfg))
+    def _build_arena(self) -> ChameleonArena:
+        stem = self.experiment_id or "run"
+        run_logger = RunLogger(
+            log_dir=self.log_dir,
+            log_path=os.path.join(self.log_dir, f"{stem}_arena.log"),
+        )
 
-    def _build_arena(self) -> Arena:
-        self._apply_backend_config()
-        return Arena.from_config(self.arena_config)
+        env = Chameleon(
+            player_configs=self.player_configs,
+            backend=None,
+            sentence_encoder=self.sentence_encoder,
+        )
 
-    def _extract_run_result(self, final_timestep: Any, run_idx: int) -> dict[str, Any]:
+        return ChameleonArena(
+            environment=env,
+            global_prompt=self.global_prompt,
+            logger=run_logger,
+        )
+
+    def _extract_run_result(self, arena: ChameleonArena, run_idx: int) -> dict[str, Any]:
+        env = arena.environment
+        chameleon_won = None
+        win_method = None
+
+        last_msg = env.message_pool.last_message
+        if last_msg is not None:
+            content = last_msg.content.lower()
+            if "won the game" in content or "won!" in content:
+                if env.chameleon_name.lower() in content and "won" in content:
+                    chameleon_won = True
+                    if "guessed the code correctly" in content:
+                        win_method = "chameleon-guess"
+                    else:
+                        win_method = "chameleon-votes"
+                else:
+                    chameleon_won = False
+                    win_method = "non-chameleon"
+
         return {
             "run_idx": run_idx,
-            "chameleon_won": None if final_timestep is None else getattr(final_timestep, "chameleon_won", None),
-            "win_method": None if final_timestep is None else getattr(final_timestep, "win_method", None),
+            "chameleon_won": chameleon_won,
+            "win_method": win_method,
         }
 
-    def run_once(self, run_idx: int) -> dict[str, Any]:
+    def run_once(self, arena: ChameleonArena, run_idx: int) -> dict[str, Any]:
         self.logger.info(
             "Starting run %d/%d (max_steps=%s)",
-            run_idx,
-            self.num_runs,
-            self.max_steps,
+            run_idx, self.num_runs, self.max_steps,
         )
 
-        arena = self._build_arena()
-        final_timestep = None
+        arena.reset()
         t0 = time.monotonic()
 
         try:
-            final_timestep = arena.run(num_steps=self.max_steps)
+            arena.run(num_steps=self.max_steps)
         except KeyboardInterrupt:
             self.logger.warning("Run %d interrupted by user.", run_idx)
             raise
-        finally:
-            if self.save_transcript:
-                self._save_transcript(arena, run_idx)
 
         elapsed = time.monotonic() - t0
-        result = self._extract_run_result(final_timestep, run_idx)
+        result = self._extract_run_result(arena, run_idx)
         result["elapsed_s"] = round(elapsed, 2)
+
+        if self.save_transcript:
+            self._save_transcript(arena, run_idx)
+
         self.logger.info(
             "Finished run %d/%d | chameleon_won=%s | win_method=%s | %.1fs",
-            run_idx,
-            self.num_runs,
-            result["chameleon_won"],
-            result["win_method"],
-            elapsed,
+            run_idx, self.num_runs,
+            result["chameleon_won"], result["win_method"], elapsed,
         )
         return result
 
     def run(self) -> list[dict[str, Any]]:
+        arena = self._build_arena()
         results: list[dict[str, Any]] = []
-
         for run_idx in range(1, self.num_runs + 1):
-            results.append(self.run_once(run_idx))
-
+            results.append(self.run_once(arena, run_idx))
+        arena.logger.close()
         self._log_summary(results)
         self._save_summary(results)
         return results
 
-    def _save_transcript(self, arena: Arena, run_idx: int) -> None:
+    def _save_transcript(self, arena: ChameleonArena, run_idx: int) -> None:
         stem = self.experiment_id or "run"
         path = os.path.join(self.log_dir, f"{stem}_transcript.txt")
 
-        messages = getattr(arena, "messages", None)
-        if messages is None:
-            env = getattr(arena, "environment", None)
-            pool = getattr(env, "message_pool", None)
-            messages = getattr(pool, "get_all_messages", lambda: [])()
+        messages = arena.environment.message_pool.get_all_messages()
 
         with open(path, "a", encoding="utf-8") as f:
             f.write(f"\n{'=' * 60}\n")
@@ -239,10 +225,7 @@ class ClosedSourceExperiment:
 
         self.logger.info(
             "Summary | total_runs=%d | chameleon_wins=%d | non_chameleon_wins=%d | unknown=%d",
-            total,
-            chameleon_wins,
-            non_chameleon_wins,
-            unknown,
+            total, chameleon_wins, non_chameleon_wins, unknown,
         )
 
     def _save_summary(self, results: list[dict[str, Any]]) -> None:
@@ -261,6 +244,7 @@ class ClosedSourceExperiment:
         with open(path, "w", encoding="utf-8") as f:
             f.write(f"experiment_id: {stem}\n")
             f.write(f"backend: {self.backend_name}\n")
+            f.write(f"mode: cs-belief\n")
             f.write(f"total_runs: {total}\n")
             f.write(f"chameleon_wins: {chameleon_wins}\n")
             f.write(f"non_chameleon_wins: {non_chameleon_wins}\n")
@@ -282,22 +266,3 @@ class ClosedSourceExperiment:
                 )
 
         self.logger.info("Summary saved → %s", path)
-
-    @classmethod
-    def from_args(cls, argv: list[str] | None = None) -> "ClosedSourceExperiment":
-        parser = build_parser()
-        args = parser.parse_args(argv)
-        return cls(
-            experiment_filepath=args.experiment,
-            backend_name=args.backend,
-            experiment_id=args.experiment_id,
-            num_runs=args.num_runs,
-            log_dir=args.log_dir,
-            log_level=args.log_level,
-            save_transcript=args.save_transcript,
-        )
-
-
-if __name__ == "__main__":
-    exp = ClosedSourceExperiment.from_args()
-    exp.run()

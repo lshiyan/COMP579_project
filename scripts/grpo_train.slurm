@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=cham-qwen7b
+#SBATCH --job-name=cham-grpo
 #SBATCH --account=winter2026-comp579
 #SBATCH --partition=all
 #SBATCH --qos=comp579-1gpu-12h
@@ -21,12 +21,11 @@ source ~/envs/comp579/bin/activate
 # ── Project ──
 cd ~/COMP579_project
 
-# ── Model cache in shared memory (fast, avoids home quota + disk limits) ──
+# ── Model cache in shared memory ──
 export HF_HOME=/dev/shm/${USER}_hf_${SLURM_JOB_ID}
 export TRANSFORMERS_CACHE="$HF_HOME"
 mkdir -p "$HF_HOME"
 
-# ── Download models to RAM ──
 echo "Downloading models to $HF_HOME (tmpfs/RAM) ..."
 python -c "
 from huggingface_hub import snapshot_download
@@ -34,6 +33,9 @@ snapshot_download('Qwen/Qwen2.5-7B-Instruct')
 snapshot_download('sentence-transformers/all-MiniLM-L6-v2')
 print('Models ready.')
 "
+
+# ── Memory tuning ──
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 # ── Diagnostics ──
 echo "=== Job Info ==="
@@ -53,10 +55,10 @@ python run_experiment.py grpo \
     --model Qwen/Qwen2.5-7B-Instruct \
     --device 0 \
     --num-runs "$NUM_RUNS" \
-    --experiment-id "qwen7b-${SLURM_JOB_ID}" \
+    --experiment-id "grpo-${SLURM_JOB_ID}" \
     --save-transcript
 
-# ── Cleanup shared memory ──
+# ── Cleanup ──
 rm -rf "$HF_HOME"
 
 echo "=== Done ==="

@@ -93,6 +93,7 @@ class Player(Agent):
         self.shared_player_belief_head = shared_player_belief_head
         self.shared_word_belief_head = shared_word_belief_head
         self.shared_speaker_embedding = shared_speaker_embedding
+        self.shared_belief_updater = None
 
         # Per-player recurrent belief state
         self.belief_state: Optional[torch.Tensor] = None
@@ -289,9 +290,12 @@ class Player(Agent):
         )
 
         if self.hidden_role == "non_chameleon":
+            word_embedding = word_embedding.to(device)
+            if word_embedding.dim() == 1:
+                word_embedding = word_embedding.unsqueeze(0)
             updater_input = torch.cat(
                 [updater_input, word_embedding],
-                dim = -1
+                dim=-1,
             )
             
         self.belief_state = self.shared_belief_updater(

@@ -27,7 +27,8 @@ class Chameleon(Environment):
     def __init__(
         self,
         player_configs: List[dict],
-        backend: TransformersHuggingFaceChat,
+        backend=None,
+        sentence_encoder=None,
         embedding_size: int = 384, #For clue embeddings
         belief_state_size: int = 512, #Belief state size
         speaker_embedding_size: int = 64,
@@ -44,15 +45,27 @@ class Chameleon(Environment):
             raise ValueError("num_clue_rounds must be >= 1")
         self.num_clue_rounds = num_clue_rounds
 
+        # Backend for LLM generation (can be HuggingFace or None for CS)
         if isinstance(backend, TransformersHuggingFaceChat):
-            self.backend: TransformersHuggingFaceChat = backend
-        else:
+            self.backend = backend
+        elif backend is not None:
             self.backend = TransformersHuggingFaceChat.from_config(backend)
+        else:
+            self.backend = None
+
+        # Standalone sentence encoder (used when backend is not HuggingFace)
+        self._sentence_encoder = sentence_encoder
 
         max_num_players = len(player_configs)
         max_num_words = max(len(words) for words in self.topic_codes.values())
 
-        llm_device = next(self.backend.model.parameters()).device
+        # Determine device for belief network modules
+        if self.backend is not None:
+            belief_device = next(self.backend.model.parameters()).device
+        elif self._sentence_encoder is not None and hasattr(self._sentence_encoder, 'device'):
+            belief_device = self._sentence_encoder.device
+        else:
+            belief_device = torch.device("cpu")
 
         self.chameleon_belief_updater = nn.GRUCell(
             input_size=(
@@ -60,31 +73,31 @@ class Chameleon(Environment):
                 + self.speaker_embedding_size
             ),
             hidden_size=self.belief_state_size,
-        ).to(llm_device)
-        
-        self.non_chameleon_belif_updater = nn.GRUCell(
+        ).to(belief_device)
+
+        self.non_chameleon_belief_updater = nn.GRUCell(
             input_size=(
-                self.embedding_size*2
+                self.embedding_size * 2
                 + self.speaker_embedding_size
             ),
             hidden_size=self.belief_state_size,
-        ).to(llm_device)
-        
+        ).to(belief_device)
+
         self.shared_speaker_embedding = nn.Embedding(
             max_num_players, self.speaker_embedding_size
-        ).to(llm_device)
+        ).to(belief_device)
         self.shared_player_belief_head = nn.Linear(
             self.belief_state_size, max_num_players
-        ).to(llm_device)
+        ).to(belief_device)
         self.shared_word_belief_head = nn.Linear(
             self.belief_state_size, max_num_words
-        ).to(llm_device)
+        ).to(belief_device)
 
         self.players = [
             Player(
                 name=cfg["name"],
                 role_desc=cfg["role_desc"],
-                backend=self.backend,
+                backend=self.backend if self.backend is not None else cfg["backend"],
                 global_prompt=cfg.get("global_prompt", None),
                 embedding_size=self.embedding_size,
                 belief_state_size=self.belief_state_size,
@@ -135,7 +148,7 @@ class Chameleon(Environment):
         self.topic = random.choice(list(self.topic_codes.keys()))
         self.code = random.choice(self.topic_codes[self.topic])
         self.chameleon_name = random.choice(self.player_names)
-        self.secret_word_embedding = self.backend.get_message_embedding(f"Topic: {self.topic}, Word: {self.word}")
+        self.secret_word_embedding = self.backend.get_message_embedding(f"Topic: {self.topic}, Word: {self.code}")
         self.non_chameleon_names = [
             name for name in self.player_names if name != self.chameleon_name
         ]
@@ -164,8 +177,8 @@ class Chameleon(Environment):
             )
             player.set_shared_belief_modules(
                 self.shared_speaker_embedding,
-                self.non_chameleon_belif_updater,
-                self.chameleon_belief_updater
+                self.chameleon_belief_updater,
+                self.non_chameleon_belief_updater,
             )
 
         self._current_turn = 0
@@ -275,14 +288,20 @@ class Chameleon(Environment):
         return False
 
     def _encode_message_for_beliefs(self, action: str) -> torch.Tensor:
-        message_embedding = self.backend.get_message_embedding(
-            message_text=action,
-        )
-
-        if message_embedding.dim() == 1:
-            message_embedding = message_embedding.unsqueeze(0)
-
-        return message_embedding
+        if self._sentence_encoder is not None:
+            emb = self._sentence_encoder.encode(
+                action, convert_to_tensor=True,
+            )
+            if emb.dim() == 1:
+                emb = emb.unsqueeze(0)
+            return emb
+        else:
+            message_embedding = self.backend.get_message_embedding(
+                message_text=action,
+            )
+            if message_embedding.dim() == 1:
+                message_embedding = message_embedding.unsqueeze(0)
+            return message_embedding
 
     def _update_beliefs_for_new_clue(self, speaker_name: str, action: str):
         message_embedding = self._encode_message_for_beliefs(action)
@@ -446,6 +465,9 @@ class Chameleon(Environment):
                 self._next_player_idx += 1
                 rewards = self.get_zero_rewards()
                 terminal = False
+                timestep = TimeStep(
+                    observation=self.get_observation(), reward=rewards, terminal=terminal
+                )
             else:
                 accuse_correct, even_vote = True, False
                 max_vote_player = max(self._players_votes, key=self._players_votes.get)
