@@ -1,5 +1,6 @@
 import logging
 import re
+import random
 import uuid
 from abc import abstractmethod
 from typing import List, Union, Sequence, Optional
@@ -40,12 +41,9 @@ class Player(Agent):
         global_prompt: Optional[str] = None,
         embedding_size: Optional[int] = None,
         belief_state_size: Optional[int] = None,
-        hidden_role: Optional[str] = None,
         shared_player_belief_head=None,
         shared_word_belief_head=None,
-        shared_belief_updater=None,
         shared_speaker_embedding=None,
-        shared_role_embedding=None,
         **kwargs,
     ):
         if isinstance(backend, BackendConfig):
@@ -94,9 +92,7 @@ class Player(Agent):
         # Shared heads / modules owned by environment
         self.shared_player_belief_head = shared_player_belief_head
         self.shared_word_belief_head = shared_word_belief_head
-        self.shared_belief_updater = shared_belief_updater
         self.shared_speaker_embedding = shared_speaker_embedding
-        self.shared_role_embedding = shared_role_embedding
 
         # Per-player recurrent belief state
         self.belief_state: Optional[torch.Tensor] = None
@@ -123,13 +119,15 @@ class Player(Agent):
 
     def set_shared_belief_modules(
         self,
-        belief_updater,
         speaker_embedding,
-        role_embedding,
+        chameleon_belief_updater,
+        non_chameleon_belief_updater
     ):
-        self.shared_belief_updater = belief_updater
+        if self.hidden_role == "chameleon":
+            self.shared_belief_updater = chameleon_belief_updater
+        else:
+            self.shared_belief_updater = non_chameleon_belief_updater
         self.shared_speaker_embedding = speaker_embedding
-        self.shared_role_embedding = role_embedding
 
     def set_hidden_role(self, hidden_role: str, agents: List[str], words: List[str]):
         if hidden_role not in self.VALID_HIDDEN_ROLES:
@@ -144,8 +142,6 @@ class Player(Agent):
         if hidden_role == "chameleon":
             if len(self.words) == 0:
                 raise ValueError("words must be set before assigning role 'chameleon'.")
-            if self.shared_word_belief_head is None:
-                raise ValueError("shared_word_belief_head has not been set.")
 
         elif hidden_role == "non_chameleon":
             if len(self.agents) == 0:
@@ -154,16 +150,6 @@ class Player(Agent):
                 raise ValueError(
                     f"Player {self.name} must appear in agents before assigning role 'non_chameleon'."
                 )
-            if self.shared_player_belief_head is None:
-                raise ValueError("shared_player_belief_head has not been set.")
-
-        if self.shared_belief_updater is None:
-            raise ValueError("shared_belief_updater has not been set.")
-        if self.shared_speaker_embedding is None:
-            raise ValueError("shared_speaker_embedding has not been set.")
-        if self.shared_role_embedding is None:
-            raise ValueError("shared_role_embedding has not been set.")
-
         self.reset_beliefs()
 
     def _get_device(self) -> torch.device:
@@ -172,7 +158,6 @@ class Player(Agent):
             self.shared_player_belief_head,
             self.shared_word_belief_head,
             self.shared_speaker_embedding,
-            self.shared_role_embedding,
         ]
         for module in modules:
             if module is not None:
@@ -254,6 +239,7 @@ class Player(Agent):
         self,
         message_embedding: torch.Tensor,
         speaker_name: str,
+        word_embedding: torch.Tensor,
     ):
         """
         Update this player's recurrent belief state from a new observed message embedding.
@@ -295,18 +281,19 @@ class Player(Agent):
         speaker_idx = torch.tensor(
             [self.agent_to_idx[speaker_name]], dtype=torch.long, device=device
         )
-        role_idx = torch.tensor(
-            [self._get_role_id()], dtype=torch.long, device=device
-        )
 
         speaker_emb = self.shared_speaker_embedding(speaker_idx)
-        role_emb = self.shared_role_embedding(role_idx)
-
         updater_input = torch.cat(
-            [message_embedding, speaker_emb, role_emb],
+            [message_embedding,speaker_emb],
             dim=-1,
         )
 
+        if self.hidden_role == "non_chameleon":
+            updater_input = torch.cat(
+                [updater_input, word_embedding],
+                dim = -1
+            )
+            
         self.belief_state = self.shared_belief_updater(
             updater_input,
             self.belief_state,
@@ -362,6 +349,20 @@ class Player(Agent):
                 "prompt_input_ids": None,
                 "prompt_attention_mask": None,
             }
+    
+    def vote(self, cur_votes: dict):
+        voted_player = ""
+        if self.hidden_role == "chameleon":
+            voted_player = random.choice([player for player in cur_votes.keys() if player != self.name])
+        else:
+            sampled_idx = torch.multinomial(self.beliefs, num_samples=1).item()
+            voted_player = self.agents[sampled_idx]
+        return voted_player
+
+    def guess(self):
+        sampled_idx = torch.multinomial(self.beliefs, num_samples=1).item()
+        guessed_word = self.words[sampled_idx]
+        return guessed_word
 
     def __call__(self, observation: List[Message]):
         return self.act(observation)

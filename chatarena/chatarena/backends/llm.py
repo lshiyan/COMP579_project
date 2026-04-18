@@ -37,7 +37,7 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
         model: str,
         device: int = -1,
         torch_dtype: str = "auto",
-        max_new_tokens: int = 128,
+        max_new_tokens: int = 32, # IMPORTANT: Controls how many words can be in the clue.
         temperature: float = 0.7,
         do_sample: bool = True,
         sentence_encoder_model: str = "sentence-transformers/all-MiniLM-L6-v2",
@@ -209,6 +209,9 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
             max_new_tokens=self.max_new_tokens,
             temperature=self.temperature,
             do_sample=self.do_sample,
+            top_p=0.9,
+            top_k=50,
+            repetition_penalty=1.1,
             pad_token_id=self.tokenizer.pad_token_id,
             eos_token_id=self.tokenizer.eos_token_id,
             return_dict_in_generate=True,

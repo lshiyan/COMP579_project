@@ -32,7 +32,6 @@ class Chameleon(Environment):
         embedding_size: int = 384, #For clue embeddings
         belief_state_size: int = 512, #Belief state size
         speaker_embedding_size: int = 64,
-        role_embedding_size: int = 16,
         num_clue_rounds: int = 1,
         **kwargs,
     ):
@@ -41,7 +40,6 @@ class Chameleon(Environment):
         self.embedding_size = embedding_size
         self.belief_state_size = belief_state_size
         self.speaker_embedding_size = speaker_embedding_size
-        self.role_embedding_size = role_embedding_size
 
         if num_clue_rounds < 1:
             raise ValueError("num_clue_rounds must be >= 1")
@@ -69,19 +67,25 @@ class Chameleon(Environment):
         else:
             belief_device = torch.device("cpu")
 
-        self.shared_belief_updater = nn.GRUCell(
+        self.chameleon_belief_updater = nn.GRUCell(
             input_size=(
                 self.embedding_size
                 + self.speaker_embedding_size
-                + self.role_embedding_size
             ),
             hidden_size=self.belief_state_size,
         ).to(belief_device)
+
+        self.non_chameleon_belief_updater = nn.GRUCell(
+            input_size=(
+                self.embedding_size * 2
+                + self.speaker_embedding_size
+            ),
+            hidden_size=self.belief_state_size,
+        ).to(belief_device)
+
         self.shared_speaker_embedding = nn.Embedding(
             max_num_players, self.speaker_embedding_size
         ).to(belief_device)
-        self.shared_role_embedding = nn.Embedding(2, self.role_embedding_size).to(belief_device)
-
         self.shared_player_belief_head = nn.Linear(
             self.belief_state_size, max_num_players
         ).to(belief_device)
@@ -99,9 +103,7 @@ class Chameleon(Environment):
                 belief_state_size=self.belief_state_size,
                 shared_player_belief_head=self.shared_player_belief_head,
                 shared_word_belief_head=self.shared_word_belief_head,
-                shared_belief_updater=self.shared_belief_updater,
                 shared_speaker_embedding=self.shared_speaker_embedding,
-                shared_role_embedding=self.shared_role_embedding,
             )
             for cfg in player_configs
         ]
@@ -122,6 +124,8 @@ class Chameleon(Environment):
         self.chameleon_name = None
         self.non_chameleon_names = None
         self.word_to_idx = None
+        self.secret_word_embedding = None
+
 
         self._current_turn = 0
         self._next_player_idx = 0
@@ -144,6 +148,7 @@ class Chameleon(Environment):
         self.topic = random.choice(list(self.topic_codes.keys()))
         self.code = random.choice(self.topic_codes[self.topic])
         self.chameleon_name = random.choice(self.player_names)
+        self.secret_word_embedding = self.backend.get_message_embedding(f"Topic: {self.topic}, Word: {self.word}")
         self.non_chameleon_names = [
             name for name in self.player_names if name != self.chameleon_name
         ]
@@ -152,16 +157,7 @@ class Chameleon(Environment):
         self.word_to_idx = {word: i for i, word in enumerate(current_words)}
 
         for player in self.players:
-            player.set_shared_belief_heads(
-                self.shared_player_belief_head,
-                self.shared_word_belief_head,
-            )
-            player.set_shared_belief_modules(
-                self.shared_belief_updater,
-                self.shared_speaker_embedding,
-                self.shared_role_embedding,
-            )
-
+            
             if player.name != self.chameleon_name:
                 player.set_hidden_role(
                     "non_chameleon",
@@ -174,6 +170,16 @@ class Chameleon(Environment):
                     self.player_names,
                     current_words,
                 )
+                
+            player.set_shared_belief_heads(
+                self.shared_player_belief_head,
+                self.shared_word_belief_head,
+            )
+            player.set_shared_belief_modules(
+                self.shared_speaker_embedding,
+                self.chameleon_belief_updater,
+                self.non_chameleon_belief_updater,
+            )
 
         self._current_turn = 0
         self._next_player_idx = 0
@@ -191,12 +197,21 @@ class Chameleon(Environment):
             "You are the chameleon!",
             visible_to=self.chameleon_name,
         )
-        self._moderator_speak(
+        
+        clue_message = (
             f"Now everyone gives {self.num_clue_rounds} clue round(s) "
             f"(but don't give away the secret word). "
-            f"You cannot repeat what others have said. "
+            f"You cannot repeat what others have said.\n\n"
+            f"IMPORTANT RULE:\n"
+            f"Your clue MUST contain AT MOST 10 words.\n"
+            f"If your response exceeds 10 words, it will be considered INVALID.\n"
+            f"Output ONLY the clue. Do not explain.\n\n"
             f"We will start with {self.player_names[0]}. "
             f"Round 1/{self.num_clue_rounds}."
+        )
+        
+        self._moderator_speak(
+            clue_message
         )
         self._current_turn = 1
 
@@ -220,6 +235,9 @@ class Chameleon(Environment):
             player_name,
             turn=self._current_turn,
         )
+    
+    def get_votes(self):
+        return self._players_votes
 
     def _text2vote(self, text) -> str:
         text = text.lower()
@@ -292,6 +310,7 @@ class Chameleon(Environment):
             player.update_belief_state(
                 message_embedding=message_embedding,
                 speaker_name=speaker_name,
+                word_embedding=self.secret_word_embedding
             )
 
     def _compute_belief_reward(
@@ -473,6 +492,10 @@ class Chameleon(Environment):
                         )
                     rewards = self.get_rewards(chameleon_win=True)
                     terminal = True
+                    
+                    timestep = TimeStep(
+                        observation=self.get_observation(), reward=rewards, terminal=terminal, chameleon_won=True, win_method="chameleon-votes"
+                    )
                 else:
                     self._moderator_speak(
                         f"The accusation is correct! {self.chameleon_name} is the chameleon! "
@@ -482,14 +505,12 @@ class Chameleon(Environment):
                     self._current_phase = "guess"
                     rewards = self.get_zero_rewards()
                     terminal = False
+                    
+                    timestep = TimeStep(
+                        observation=self.get_observation(), reward=rewards, terminal=terminal
+                    )
 
                 self._current_turn += 1
-
-            timestep = TimeStep(
-                observation=self.get_observation(),
-                reward=rewards,
-                terminal=terminal,
-            )
 
         elif self._current_phase == "guess":
             message = Message(
@@ -506,6 +527,15 @@ class Chameleon(Environment):
                     f"{self.chameleon_name} won!"
                 )
                 rewards = self.get_rewards(chameleon_win=True)
+                
+                timestep = TimeStep(
+                    observation=self.get_observation(),
+                    reward=self.get_rewards(chameleon_win=True),
+                    terminal=True,
+                    chameleon_won=True,
+                    win_method="chameleon-guess"
+                )
+                
             else:
                 self._moderator_speak(
                     f"{player_name} guessed the code wrong! The secret word is {self.code}. "
@@ -513,11 +543,13 @@ class Chameleon(Environment):
                 )
                 rewards = self.get_rewards(chameleon_win=False)
 
-            timestep = TimeStep(
-                observation=self.get_observation(),
-                reward=rewards,
-                terminal=True,
-            )
+                timestep = TimeStep(
+                    observation=self.get_observation(),
+                    reward=self.get_rewards(chameleon_win=False),
+                    terminal=True,
+                    chameleon_won=False,
+                    win_method="non-chameleon"
+                )
 
         else:
             raise ValueError(f"Unknown phase: {self._current_phase}")

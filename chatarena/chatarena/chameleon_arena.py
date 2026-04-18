@@ -52,10 +52,10 @@ class RunLogger:
     def log_step(
         self,
         player_name: str,
-        responses: list,
         best_action: str,
         new_messages: list,
         terminal_rewards: dict,
+        responses: list = None,
         belief_rewards: list = None,
         advantages: list = None,
         best_idx: int = 0,
@@ -182,9 +182,9 @@ class ChameleonArena:
 
         # Belief optimizer — always active (trains belief network via CE loss)
         belief_params = (
-            list(self.environment.shared_belief_updater.parameters())
+            list(self.environment.chameleon_belief_updater.parameters())
+            + list(self.environment.non_chameleon_belief_updater.parameters())
             + list(self.environment.shared_speaker_embedding.parameters())
-            + list(self.environment.shared_role_embedding.parameters())
             + list(self.environment.shared_player_belief_head.parameters())
             + list(self.environment.shared_word_belief_head.parameters())
         )
@@ -263,29 +263,6 @@ class ChameleonArena:
                 terminal_rewards=timestep.reward if timestep.terminal else None,
             )
 
-        elif self.environment._current_phase == "accuse" and player_name != self.environment.chameleon_name:
-            # Non-chameleon players vote using their belief distribution
-            beliefs = player.beliefs.detach()
-            belief_dict = {
-                self.environment.player_names[i]: beliefs[i].item()
-                for i in range(len(self.environment.player_names))
-            }
-            voted_idx = beliefs.argmax().item()
-            voted_name = self.environment.player_names[voted_idx]
-            action = f"I vote for {voted_name}."
-
-            msg_count_before = len(self.environment.message_pool._messages)
-            timestep = self.environment.step(player_name, action)
-            new_messages = self.environment.message_pool._messages[msg_count_before:]
-
-            self.logger.log_vote(
-                player_name=player_name,
-                belief_distribution=belief_dict,
-                voted_for=voted_name,
-                new_messages=new_messages,
-                terminal_rewards=timestep.reward if timestep.terminal else None,
-            )
-
         elif self.environment._current_phase == "give clues" and player_name != self.environment.chameleon_name:
             # No-GRPO path (closed-source): generate one clue, update beliefs, train belief network
             response = player(observation)
@@ -302,13 +279,12 @@ class ChameleonArena:
 
             self.logger.log_step(
                 player_name=player_name,
-                responses=[response],
                 best_action=action,
                 new_messages=new_messages,
                 terminal_rewards=timestep.reward if timestep.terminal else None,
             )
 
-        else:
+        elif self.environment._current_phase == "give clues" and player_name == self.environment.chameleon_name:
             response = player(observation)
             action = _get_action(response)
             msg_count_before = len(self.environment.message_pool._messages)
@@ -317,7 +293,51 @@ class ChameleonArena:
 
             self.logger.log_step(
                 player_name=player_name,
-                responses=[response],
+                best_action=action,
+                new_messages=new_messages,
+                terminal_rewards=timestep.reward if timestep.terminal else None,
+            )
+
+        elif self.environment._current_phase == "accuse":
+            cur_votes = self.environment.get_votes()
+            voted_player = player.vote(cur_votes)
+            action = f"I vote for {voted_player}."
+
+            msg_count_before = len(self.environment.message_pool._messages)
+            timestep = self.environment.step(player_name, action)
+            new_messages = self.environment.message_pool._messages[msg_count_before:]
+
+            if player_name != self.environment.chameleon_name and player.beliefs is not None:
+                beliefs = player.beliefs.detach()
+                belief_dict = {
+                    self.environment.player_names[i]: beliefs[i].item()
+                    for i in range(len(self.environment.player_names))
+                }
+                self.logger.log_vote(
+                    player_name=player_name,
+                    belief_distribution=belief_dict,
+                    voted_for=voted_player,
+                    new_messages=new_messages,
+                    terminal_rewards=timestep.reward if timestep.terminal else None,
+                )
+            else:
+                self.logger.log_step(
+                    player_name=player_name,
+                    best_action=action,
+                    new_messages=new_messages,
+                    terminal_rewards=timestep.reward if timestep.terminal else None,
+                )
+
+        elif self.environment._current_phase == "guess":
+            guessed_word = player.guess()
+            action = f"I guess the secret word is {guessed_word}."
+
+            msg_count_before = len(self.environment.message_pool._messages)
+            timestep = self.environment.step(player_name, action)
+            new_messages = self.environment.message_pool._messages[msg_count_before:]
+
+            self.logger.log_step(
+                player_name=player_name,
                 best_action=action,
                 new_messages=new_messages,
                 terminal_rewards=timestep.reward if timestep.terminal else None,
