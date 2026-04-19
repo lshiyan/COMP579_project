@@ -413,7 +413,7 @@ class ChameleonArena:
             # KL anchored to the original sampling distribution (log_prob_old)
             # instead of a separate ref model forward pass
             kl = torch.exp(log_prob_old - log_prob_theta) - log_prob_old + log_prob_theta - 1
-            kl_loss = kl_loss + kl
+            kl_loss = kl_loss + kl / seq_len
 
         return (policy_loss + beta * kl_loss) / len(responses)
 
