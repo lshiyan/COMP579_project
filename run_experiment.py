@@ -90,7 +90,7 @@ def main():
     os_group.add_argument(
         "--max-new-tokens",
         type=int,
-        default=128,
+        default=32,
         help="Max new tokens to generate per turn.",
     )
 

@@ -20,7 +20,7 @@ BACKEND_CONFIG = {
     "model": DEFAULT_MODEL,
     "device": 0,
     "torch_dtype": "bfloat16",
-    "max_new_tokens": 128,
+    "max_new_tokens": 32,
     "temperature": 0.7,
     "do_sample": True,
     "lora_cfg": {
@@ -64,7 +64,7 @@ class GRPOExperiment:
         model: str = DEFAULT_MODEL,
         device: int = 0,
         torch_dtype: str = "bfloat16",
-        max_new_tokens: int = 128,
+        max_new_tokens: int = 32,
         temperature: float = 0.7,
         experiment_id: str | None = None,
         num_runs: int = 1,

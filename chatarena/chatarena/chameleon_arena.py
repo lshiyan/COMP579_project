@@ -447,7 +447,7 @@ class ChameleonArena:
             -1, shift_labels.unsqueeze(-1)
         ).squeeze(-1)
 
-        return token_log_probs.mean(dim=-1)
+        return token_log_probs.sum(dim=-1)
     
     def run(self, num_steps: int = 1):
         """Run the game for num_turns. Returns the final timestep."""

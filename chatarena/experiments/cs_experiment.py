@@ -14,17 +14,17 @@ BACKEND_CONFIGS = {
     "openai": {
         "backend_type": "openai",
         "temperature": 0.9,
-        "max_tokens": 100,
+        "max_tokens": 32,
     },
     "claude": {
         "backend_type": "claude",
         "temperature": 0.9,
-        "max_tokens": 100,
+        "max_tokens": 32,
     },
     "gemini": {
         "backend_type": "gemini",
         "temperature": 0.9,
-        "max_output_tokens": 100,
+        "max_output_tokens": 32,
     },
 }
 
