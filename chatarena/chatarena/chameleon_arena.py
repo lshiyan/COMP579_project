@@ -183,7 +183,6 @@ class ChameleonArena:
         )
 
         if self.train_policy:
-            self.reference_model = self.environment.backend.get_ref_model()
             self.policy_optimizer = torch.optim.Adam(
                 filter(lambda p: p.requires_grad, self.environment.backend.model.parameters()),
                 lr=1e-4,
@@ -410,9 +409,15 @@ class ChameleonArena:
             clipped = torch.clamp(ratio, 1 - eps, 1 + eps)
             policy_loss = policy_loss - torch.min(ratio * adv, clipped * adv) / seq_len
 
-            # KL anchored to the original sampling distribution (log_prob_old)
-            # instead of a separate ref model forward pass
-            kl = torch.exp(log_prob_old - log_prob_theta) - log_prob_old + log_prob_theta - 1
+            with player.backend.model.disable_adapter():
+                log_prob_ref = self._compute_seq_logprob(
+                    player.backend.model,
+                    prompt_input_ids=response["prompt_input_ids"],
+                    prompt_attention_mask=response["prompt_attention_mask"],
+                    new_tokens=response["new_tokens"],
+                )
+                
+            kl = torch.exp(log_prob_ref - log_prob_theta) - log_prob_ref + log_prob_theta - 1
             kl_loss = kl_loss + kl / seq_len
 
         return (policy_loss + beta * kl_loss) / len(responses)
