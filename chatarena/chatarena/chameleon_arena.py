@@ -164,7 +164,7 @@ class ChameleonArena:
     """Utility class that manages the game environment and players."""
 
     def __init__(
-        self, environment: Chameleon, global_prompt: str = None, clue_number: int = 3, num_grpo_epochs: int = 3,
+        self, environment: Chameleon, global_prompt: str = None, clue_number: int = 3, num_grpo_epochs: int = 3, policy_lr: int = 1e-4, belief_lr: int = 1e-5,
         logger: RunLogger | None = None,
     ):
         # Create a container for the players and environment and reset the game
@@ -185,7 +185,7 @@ class ChameleonArena:
         if self.train_policy:
             self.policy_optimizer = torch.optim.Adam(
                 filter(lambda p: p.requires_grad, self.environment.backend.model.parameters()),
-                lr=1e-4,
+                lr=policy_lr,
             )
         else:
             self.reference_model = None
@@ -207,7 +207,7 @@ class ChameleonArena:
             + list(self.environment.shared_player_belief_head.parameters())
             + list(self.environment.shared_word_belief_head.parameters())
         )
-        self.belief_optimizer = torch.optim.Adam(belief_params, lr=1e-3)
+        self.belief_optimizer = torch.optim.Adam(belief_params, lr=belief_lr)
         
     @property
     def num_players(self):
