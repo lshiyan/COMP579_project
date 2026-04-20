@@ -88,7 +88,7 @@ class Chameleon(Environment):
         ).to(belief_device)
         
         self.shared_topic_embedding = nn.Embedding(
-            max_num_words, self.speaker_embedding_size
+            len(self.topic_codes), self.speaker_embedding_size
         ).to(belief_device)
         
         self.shared_player_belief_head = nn.Linear(
@@ -109,6 +109,7 @@ class Chameleon(Environment):
                 shared_player_belief_head=self.shared_player_belief_head,
                 shared_word_belief_head=self.shared_word_belief_head,
                 shared_speaker_embedding=self.shared_speaker_embedding,
+                shared_topic_embedding=self.shared_topic_embedding
             )
             for cfg in player_configs
         ]
@@ -317,6 +318,8 @@ class Chameleon(Environment):
         topic_idx = self.topic_to_idx[self.topic]
         
         for player in self.players:
+            if player.name == speaker_name:
+                continue
             player.update_belief_state(
                 message_embedding=message_embedding,
                 speaker_name=speaker_name,
