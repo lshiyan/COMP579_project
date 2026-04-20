@@ -93,6 +93,12 @@ def main():
         default=32,
         help="Max new tokens to generate per turn.",
     )
+    os_group.add_argument(
+        "--use-hidden-states",
+        type=lambda x: x.lower() in ('true', '1', 'yes'),
+        default=True,
+        help="Use transformer hidden states for belief updates (default: true). Set to false to use sentence encoder embeddings.",
+    )
 
     args = parser.parse_args()
 
@@ -171,6 +177,7 @@ def main():
             max_steps=args.max_steps,
             log_dir=args.log_dir,
             save_transcript=args.save_transcript,
+            use_hidden_states=args.use_hidden_states,
         )
         if args.temperature is not None:
             kwargs["temperature"] = args.temperature

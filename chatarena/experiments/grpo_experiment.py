@@ -30,6 +30,7 @@ BACKEND_CONFIG = {
         "lora_dropout": 0.05,
         "target_modules": ["q_proj", "v_proj"],
     },
+    "use_hidden_states": True
 }
 
 
@@ -72,6 +73,7 @@ class GRPOExperiment:
         log_dir: str = "logs",
         log_level: str = "INFO",
         save_transcript: bool = False,
+        use_hidden_states: bool = True,
     ):
         if num_runs < 1:
             raise ValueError("num_runs must be at least 1")
@@ -83,6 +85,7 @@ class GRPOExperiment:
         self.max_steps = max_steps
         self.save_transcript = save_transcript
         self.log_dir = log_dir
+        self.use_hidden_states = use_hidden_states
 
         self.logger = setup_logging(log_dir, experiment_id, log_level)
         self.logger.info("Loading config from %s", experiment_filepath)
@@ -95,6 +98,7 @@ class GRPOExperiment:
         backend_cfg["torch_dtype"] = torch_dtype
         backend_cfg["max_new_tokens"] = max_new_tokens
         backend_cfg["temperature"] = temperature
+        backend_cfg["use_hidden_states"] = use_hidden_states
 
         self.logger.info("Loading model %s on device %d ...", model, device)
         self.shared_backend = load_backend(BackendConfig(backend_cfg))
@@ -113,8 +117,8 @@ class GRPOExperiment:
         self.global_prompt = global_prompt
 
         self.logger.info(
-            "GRPO experiment ready | model=%s | device=%d | players=%d | runs=%d",
-            model, device, len(self.player_configs), self.num_runs,
+            "GRPO experiment ready | model=%s | device=%d | players=%d | runs=%d | use_hidden_states=%s",
+            model, device, len(self.player_configs), self.num_runs, use_hidden_states,
         )
 
     def _build_arena(self) -> ChameleonArena:

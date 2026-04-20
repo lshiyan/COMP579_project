@@ -2,6 +2,7 @@ import os
 import torch
 from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from typing import List, Tuple, Union, Dict
+import torch.nn as nn
 
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
@@ -43,6 +44,7 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
         sentence_encoder_model: str = "sentence-transformers/all-MiniLM-L6-v2",
         normalize_sentence_embeddings: bool = True,
         lora_cfg: dict = None,
+        use_hidden_states: bool = True,
         **kwargs,
     ):
         super().__init__(
@@ -54,6 +56,7 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
             do_sample=do_sample,
             sentence_encoder_model=sentence_encoder_model,
             normalize_sentence_embeddings=normalize_sentence_embeddings,
+            use_hidden_states=use_hidden_states,
             **kwargs,
         )
 
@@ -62,6 +65,7 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
         self.max_new_tokens = max_new_tokens
         self.temperature = temperature
         self.do_sample = do_sample
+        self.use_hidden_states = use_hidden_states
 
         self.sentence_encoder_model_name = sentence_encoder_model
         self.normalize_sentence_embeddings = normalize_sentence_embeddings
@@ -98,6 +102,7 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
             torch_dtype=dtype,
             device_map=device_map,
         )
+        self.hidden_size = self.model.config.hidden_size
         
         if lora_cfg is not None:
             task_type_str = lora_cfg.pop("task_type", "CAUSAL_LM")
@@ -122,6 +127,12 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
         self.sentence_embedding_size = (
             self.sentence_encoder.get_sentence_embedding_dimension()
         )
+        if self.hidden_size != self.sentence_embedding_size:
+            self.hidden_state_projector = nn.Linear(
+                self.hidden_size, self.sentence_embedding_size
+            ).to(self.model.device)
+        else:
+            self.hidden_state_projector = None
 
     @staticmethod
     def _to_chat_messages(
@@ -189,16 +200,65 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
         return embedding
 
     @torch.no_grad()
+    def _encode_text_hidden_state(
+        self,
+        text: Union[str, List[str]],
+        convert_to_tensor: bool = True,
+        detach_to_cpu: bool = True,
+    ) -> torch.Tensor:
+        if isinstance(text, str):
+            text = [text]
+
+        inputs = self.tokenizer(
+            list(text),
+            return_tensors="pt",
+            truncation=True,
+            padding=True,
+        )
+        inputs = {k: v.to(self.model.device) for k, v in inputs.items()}
+
+        outputs = self.model(
+            **inputs,
+            output_hidden_states=True,
+            return_dict=True,
+        )
+        hidden_states = outputs.hidden_states[-1]
+        attention_mask = inputs.get("attention_mask")
+        if attention_mask is not None:
+            attention_mask = attention_mask.unsqueeze(-1)
+            hidden_states = hidden_states * attention_mask
+            hidden_states = hidden_states.sum(dim=1)
+            divisor = attention_mask.sum(dim=1).clamp(min=1e-9)
+            hidden_states = hidden_states / divisor
+
+        if self.hidden_state_projector is not None:
+            hidden_states = self.hidden_state_projector(hidden_states)
+
+        if convert_to_tensor:
+            hidden_states = hidden_states.float()
+            if detach_to_cpu:
+                hidden_states = hidden_states.detach().cpu()
+
+        return hidden_states
+
+    @torch.no_grad()
     def get_message_embedding(
         self,
         message_text: str,
         detach_to_cpu: bool = True,
     ) -> torch.Tensor:
-        return self._encode_text(
-            message_text,
-            convert_to_tensor=True,
-            detach_to_cpu=detach_to_cpu,
-        )
+        if self.use_hidden_states:
+            return self._encode_text_hidden_state(
+                message_text,
+                convert_to_tensor=True,
+                detach_to_cpu=detach_to_cpu,
+            )
+        else:
+            return self._encode_text(
+                message_text,
+                convert_to_tensor=True,
+                detach_to_cpu=detach_to_cpu,
+            )
 
     @retry(stop=stop_after_attempt(6), wait=wait_random_exponential(min=1, max=60))
     def _get_response(self, messages):
