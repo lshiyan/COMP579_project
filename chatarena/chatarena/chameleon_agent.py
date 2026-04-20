@@ -44,6 +44,7 @@ class Player(Agent):
         shared_player_belief_head=None,
         shared_word_belief_head=None,
         shared_speaker_embedding=None,
+        shared_topic_embedding=None,
         **kwargs,
     ):
         if isinstance(backend, BackendConfig):
@@ -94,6 +95,7 @@ class Player(Agent):
         self.shared_word_belief_head = shared_word_belief_head
         self.shared_speaker_embedding = shared_speaker_embedding
         self.shared_belief_updater = None
+        self.shared_topic_embedding = shared_topic_embedding
 
         # Per-player recurrent belief state
         self.belief_state: Optional[torch.Tensor] = None
@@ -241,6 +243,7 @@ class Player(Agent):
         message_embedding: torch.Tensor,
         speaker_name: str,
         word_embedding: torch.Tensor,
+        topic_idx: int
     ):
         """
         Update this player's recurrent belief state from a new observed message embedding.
@@ -289,7 +292,11 @@ class Player(Agent):
             dim=-1,
         )
 
-        if self.hidden_role == "non_chameleon":
+        if self.hidden_role == "chameleon":
+            topic_idx_t = torch.tensor([topic_idx], dtype=torch.long, device=device)
+            topic_emb = self.shared_topic_embedding(topic_idx_t)
+            updater_input = torch.cat([message_embedding, speaker_emb, topic_emb], dim=-1)
+        else:
             word_embedding = word_embedding.to(device)
             if word_embedding.dim() == 1:
                 word_embedding = word_embedding.unsqueeze(0)

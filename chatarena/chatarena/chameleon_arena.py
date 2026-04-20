@@ -206,6 +206,7 @@ class ChameleonArena:
             + list(self.environment.shared_speaker_embedding.parameters())
             + list(self.environment.shared_player_belief_head.parameters())
             + list(self.environment.shared_word_belief_head.parameters())
+            + list(self.environment.shared_topic_embedding.parameters())
         )
         self.belief_optimizer = torch.optim.Adam(belief_params, lr=belief_lr)
         

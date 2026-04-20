@@ -70,7 +70,7 @@ class Chameleon(Environment):
         self.chameleon_belief_updater = nn.GRUCell(
             input_size=(
                 self.embedding_size
-                + self.speaker_embedding_size
+                + self.speaker_embedding_size * 2
             ),
             hidden_size=self.belief_state_size,
         ).to(belief_device)
@@ -86,6 +86,11 @@ class Chameleon(Environment):
         self.shared_speaker_embedding = nn.Embedding(
             max_num_players, self.speaker_embedding_size
         ).to(belief_device)
+        
+        self.shared_topic_embedding = nn.Embedding(
+            max_num_words, self.speaker_embedding_size
+        ).to(belief_device)
+        
         self.shared_player_belief_head = nn.Linear(
             self.belief_state_size, max_num_players
         ).to(belief_device)
@@ -110,6 +115,8 @@ class Chameleon(Environment):
 
         self.player_names = [player.name for player in self.players]
         self.agent_to_idx = {name: i for i, name in enumerate(self.player_names)}
+        self.topic_to_idx = {topic: i for i, topic in enumerate(self.topic_codes.keys())}
+
 
         super().__init__(
             player_names=self.player_names,
@@ -135,6 +142,7 @@ class Chameleon(Environment):
         self._initialized = False
 
         self.rewards = []
+        self.clue_history = []
 
         self.reset()
 
@@ -185,6 +193,7 @@ class Chameleon(Environment):
         self._next_player_idx = 0
         self._current_phase = "give clues"
         self._current_clue_round = 0
+        self.clue_history = []
 
         self.message_pool.reset()
 
@@ -305,12 +314,14 @@ class Chameleon(Environment):
 
     def _update_beliefs_for_new_clue(self, speaker_name: str, action: str):
         message_embedding = self._encode_message_for_beliefs(action)
-
+        topic_idx = self.topic_to_idx[self.topic]
+        
         for player in self.players:
             player.update_belief_state(
                 message_embedding=message_embedding,
                 speaker_name=speaker_name,
-                word_embedding=self.secret_word_embedding
+                word_embedding=self.secret_word_embedding,
+                topic_idx=topic_idx
             )
 
     def _compute_belief_reward(
@@ -349,19 +360,49 @@ class Chameleon(Environment):
 
     def compute_belief_ce_loss(self) -> torch.Tensor:
         ce = nn.CrossEntropyLoss()
-        chameleon_idx = torch.tensor([self.agent_to_idx[self.chameleon_name]])
-        word_idx = torch.tensor([self.word_to_idx[self.code]])
         device = next(self.backend.model.parameters()).device
-        
+        chameleon_idx = torch.tensor([self.agent_to_idx[self.chameleon_name]], device=device)
+        word_idx = torch.tensor([self.word_to_idx[self.code]], device=device)
         total_loss = torch.tensor(0.0, device=device)
+
         for player in self.players:
-            logits = player.get_belief_logits(player.belief_state)
-            
+            h = torch.zeros(1, self.belief_state_size, dtype=torch.float32, device=device)
+            updater = (
+                self.non_chameleon_belief_updater
+                if player.hidden_role == "non_chameleon"
+                else self.chameleon_belief_updater
+            )
+
+            for speaker_name, message_embedding, topic_idx in self.clue_history:
+                if speaker_name == player.name:
+                    continue
+
+                speaker_idx_t = torch.tensor(
+                    [self.agent_to_idx[speaker_name]], dtype=torch.long, device=device
+                )
+                speaker_emb = self.shared_speaker_embedding(speaker_idx_t)
+                msg_emb = message_embedding.to(device)
+                if msg_emb.dim() == 1:
+                    msg_emb = msg_emb.unsqueeze(0)
+
+                if player.hidden_role == "chameleon":
+                    topic_idx_t = torch.tensor([topic_idx], dtype=torch.long, device=device)
+                    topic_emb = self.shared_topic_embedding(topic_idx_t)
+                    updater_input = torch.cat([msg_emb, speaker_emb, topic_emb], dim=-1)
+                else:
+                    word_emb = self.secret_word_embedding.to(device)
+                    if word_emb.dim() == 1:
+                        word_emb = word_emb.unsqueeze(0)
+                    updater_input = torch.cat([msg_emb, speaker_emb, word_emb], dim=-1)
+
+                h = updater(updater_input, h)
+
+            logits = player.get_belief_logits(h)
             if player.hidden_role == "non_chameleon":
-                total_loss += ce(logits.unsqueeze(0), chameleon_idx.to(device))
+                total_loss += ce(logits.unsqueeze(0), chameleon_idx)
             elif player.hidden_role == "chameleon":
-                total_loss += ce(logits.unsqueeze(0), word_idx.to(device))
-        
+                total_loss += ce(logits.unsqueeze(0), word_idx)
+
         return total_loss
     
     def evaluate_clue(self, speaker_name: str, action: str):
@@ -419,6 +460,12 @@ class Chameleon(Environment):
                 speaker_name=player_name,
                 action=action,
             )
+            
+            self.clue_history.append((
+                player_name,
+                self._encode_message_for_beliefs(action).detach().cpu(),
+                self.topic_to_idx[self.topic],
+            ))
             
             self._current_turn += 1
 
