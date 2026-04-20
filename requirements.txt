@@ -1,6 +1,14 @@
 torch
 transformers
+sentence-transformers
+numpy
+openai
+anthropic
 peft
 trl
 bitsandbytes
 accelerate
+tenacity
+rich
+prompt_toolkit
+pydantic
