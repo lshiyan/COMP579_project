@@ -97,8 +97,6 @@ class Chameleon(Environment):
         self.chameleon_name = None
         self.non_chameleon_names = None
         self.word_to_idx = None
-        self.secret_word_embedding = None
-
 
         self._current_turn = 0
         self._next_player_idx = 0
@@ -108,7 +106,6 @@ class Chameleon(Environment):
         self._initialized = False
 
         self.rewards = []
-        self.clue_history = []
 
         self.reset()
 
@@ -122,7 +119,6 @@ class Chameleon(Environment):
         self.topic = random.choice(list(self.topic_codes.keys()))
         self.code = random.choice(self.topic_codes[self.topic])
         self.chameleon_name = random.choice(self.player_names)
-        self.secret_word_embedding = self.backend.get_message_embedding(f"Topic: {self.topic}, Word: {self.code}")
         self.non_chameleon_names = [
             name for name in self.player_names if name != self.chameleon_name
         ]
@@ -164,7 +160,6 @@ class Chameleon(Environment):
         self._next_player_idx = 0
         self._current_phase = "give clues"
         self._current_clue_round = 0
-        self.clue_history = []
 
         self.message_pool.reset()
 
@@ -290,7 +285,7 @@ class Chameleon(Environment):
         total_reward = torch.tensor(0.0, device=device)
 
         for clue in clues:
-            pairs = [(f"clue: {clue}", f"word: {word}") for word in candidate_words]
+            pairs = [(clue, word) for word in candidate_words]
             scores = self.backend.batch_score(pairs)
 
             scores = torch.tensor(scores, dtype=torch.float32, device=device)
@@ -347,15 +342,9 @@ class Chameleon(Environment):
                 content=action,
                 turn=self._current_turn,
             )
-            
+
             self.message_pool.append_message(message)
-            
-            self.clue_history.append((
-                player_name,
-                self._encode_message_for_beliefs(action).detach().cpu(),
-                self.topic_to_idx[self.topic],
-            ))
-            
+
             self._current_turn += 1
 
             if self._next_player_idx < len(self.player_names) - 1:

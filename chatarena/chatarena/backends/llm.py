@@ -75,6 +75,11 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
         else:
             raise ValueError(f"Unsupported torch_dtype: {torch_dtype}")
 
+        if device >= 0 and torch.cuda.is_available():
+            device_map = {"": device}
+        else:
+            device_map = "cpu"
+
         # Resolve to a local snapshot path first (avoids transformers 5.x
         # hang with local_files_only=True while still using the cache).
         try:
@@ -105,8 +110,11 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
 
         self.scorer_model_name = "BAAI/bge-reranker-v2-m3"
         self.clue_scorer = AutoModelForSequenceClassification.from_pretrained(self.scorer_model_name)
-        self.tokenizer = AutoTokenizer.from_pretrained(self.scorer_model_name)
-        
+        self.scorer_tokenizer = AutoTokenizer.from_pretrained(self.scorer_model_name)
+        if device >= 0 and torch.cuda.is_available():
+            self.clue_scorer = self.clue_scorer.to(f"cuda:{device}")
+        self.clue_scorer.eval()
+
         if self.tokenizer.pad_token_id is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
 
@@ -160,10 +168,8 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
         message_text: str,
         detach_to_cpu: bool = True,
     ) -> torch.Tensor:
-        return self._encode_text(
-            message_text,
-            convert_to_tensor=True,
-            detach_to_cpu=detach_to_cpu,
+        raise NotImplementedError(
+            "get_message_embedding was removed in encoder_belief; use score()/batch_score()."
         )
 
     @retry(stop=stop_after_attempt(6), wait=wait_random_exponential(min=1, max=60))
@@ -229,16 +235,17 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
     def score(self, text_a: str, text_b: str, normalize: bool = False):
         text_a, text_b = self._format(text_a, text_b)
 
-        inputs = self.tokenizer(
+        scorer_device = next(self.clue_scorer.parameters()).device
+        inputs = self.scorer_tokenizer(
             text_a,
             text_b,
             return_tensors="pt",
             truncation=True,
             max_length=512
-        ).to(self.device)
+        ).to(scorer_device)
 
         with torch.no_grad():
-            logits = self.model(**inputs).logits.squeeze()
+            logits = self.clue_scorer(**inputs).logits.squeeze()
 
         score = logits.item()
 
@@ -254,22 +261,23 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
         formatted_pairs = [self._format(a, b) for a, b in pairs]
         texts_a, texts_b = zip(*formatted_pairs)
 
-        inputs = self.tokenizer(
+        scorer_device = next(self.clue_scorer.parameters()).device
+        inputs = self.scorer_tokenizer(
             list(texts_a),
             list(texts_b),
             return_tensors="pt",
             padding=True,
             truncation=True,
             max_length=512
-        ).to(self.device)
+        ).to(scorer_device)
 
         with torch.no_grad():
-            logits = self.model(**inputs).logits.squeeze(-1)
+            logits = self.clue_scorer(**inputs).logits.squeeze(-1)
 
         scores = logits.cpu()
 
         if normalize:
-            scores = torch.softmax(torch.tensor(scores), dim = 0)
+            scores = torch.softmax(scores, dim=0)
 
         return scores
     
