@@ -247,16 +247,15 @@ class ChameleonArena:
         observation = self.environment.get_observation(player_name)
 
         if self.environment._current_phase == "give clues" and player_name != self.environment.chameleon_name and self.train_policy:
-            # GRPO training path (open-source models only)
             rewards = []
             responses = []
             for _ in range(self.clue_number):
                 response = player(observation)
                 responses.append(response)
-                action = response["action"]
-                with torch.no_grad():
-                    reward = self.environment.evaluate_clue(player_name, action)
-                    rewards.append(reward)
+            actions = [response["action"] for response in responses]
+            with torch.no_grad():
+                rewards = self.environment.evaluate_clues(player_name, actions)
+                rewards.append(rewards)
 
             rewards_tensor = torch.tensor(rewards, dtype=torch.float32)
             advantages = (rewards_tensor - rewards_tensor.mean()) / (rewards_tensor.std() + 1e-8)
@@ -335,8 +334,8 @@ class ChameleonArena:
             )
 
         elif self.environment._current_phase == "accuse":
-            cur_votes = self.environment.get_votes()
-            voted_player = player.vote(cur_votes)
+            player = next(p for p in self.players if p.name == player_name)
+            voted_player = player.vote_from_belief(self.player_belief)
             action = f"I vote for {voted_player}."
 
             msg_count_before = len(self.environment.message_pool._messages)
@@ -365,7 +364,8 @@ class ChameleonArena:
                 )
 
         elif self.environment._current_phase == "guess":
-            guessed_word = player.guess()
+            player = next(p for p in self.players if p.name == player_name)
+            guessed_word = player.guess_from_belief(self.word_belief)
             action = f"I guess the secret word is {guessed_word}."
 
             msg_count_before = len(self.environment.message_pool._messages)

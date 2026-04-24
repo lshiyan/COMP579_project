@@ -39,12 +39,6 @@ class Player(Agent):
         backend: Union[BackendConfig, IntelligenceBackend],
         clue_number: int = 3,
         global_prompt: Optional[str] = None,
-        embedding_size: Optional[int] = None,
-        belief_state_size: Optional[int] = None,
-        shared_player_belief_head=None,
-        shared_word_belief_head=None,
-        shared_speaker_embedding=None,
-        shared_topic_embedding=None,
         **kwargs,
     ):
         if isinstance(backend, BackendConfig):
@@ -54,12 +48,10 @@ class Player(Agent):
             backend_config = backend.to_config()
         else:
             raise ValueError(
-                f"backend must be a BackendConfig or an IntelligenceBackend, but got {type(backend)}"
+                f"backend must be BackendConfig or IntelligenceBackend, got {type(backend)}"
             )
 
-        assert (
-            name != SYSTEM_NAME
-        ), f"Player name cannot be {SYSTEM_NAME}, which is reserved for the system."
+        assert name != SYSTEM_NAME
 
         super().__init__(
             name=name,
@@ -70,271 +62,29 @@ class Player(Agent):
         )
 
         self.backend = backend
-        self.embedding_size = embedding_size
-        self.belief_state_size = belief_state_size
         self.clue_number = clue_number
-
-        if self.embedding_size is None:
-            raise ValueError("embedding_size must be provided.")
-        if self.belief_state_size is None:
-            raise ValueError("belief_state_size must be provided.")
 
         self.agents = []
         self.words = []
-
         self.agent_to_idx = {}
         self.word_to_idx = {}
 
         self.hidden_role: Optional[str] = None
-        self.beliefs: Optional[torch.Tensor] = None
         self.self_idx: Optional[int] = None
-        self.secret_word: Optional[str] = None
-
-        # Shared heads / modules owned by environment
-        self.shared_player_belief_head = shared_player_belief_head
-        self.shared_word_belief_head = shared_word_belief_head
-        self.shared_speaker_embedding = shared_speaker_embedding
-        self.shared_belief_updater = None
-        self.shared_topic_embedding = shared_topic_embedding
-
-        # Per-player recurrent belief state
-        self.belief_state: Optional[torch.Tensor] = None
-
-        self._refresh_index_maps()
-
 
     def _refresh_index_maps(self):
         self.agent_to_idx = {agent: i for i, agent in enumerate(self.agents)}
         self.word_to_idx = {word: i for i, word in enumerate(self.words)}
         self.self_idx = self.agent_to_idx.get(self.name, None)
 
-    def set_agents(self, agents: List[str]):
-        self.agents = [agent for agent in agents]
-        self._refresh_index_maps()
-
-    def set_words(self, words: List[str]):
-        self.words = [word for word in words]
-        self._refresh_index_maps()
-
-    def set_shared_belief_heads(self, player_head, word_head):
-        self.shared_player_belief_head = player_head
-        self.shared_word_belief_head = word_head
-
-    def set_shared_belief_modules(
-        self,
-        speaker_embedding,
-        chameleon_belief_updater,
-        non_chameleon_belief_updater
-    ):
-        if self.hidden_role == "chameleon":
-            self.shared_belief_updater = chameleon_belief_updater
-        else:
-            self.shared_belief_updater = non_chameleon_belief_updater
-        self.shared_speaker_embedding = speaker_embedding
-
     def set_hidden_role(self, hidden_role: str, agents: List[str], words: List[str]):
         if hidden_role not in self.VALID_HIDDEN_ROLES:
-            raise ValueError(
-                f"hidden_role must be one of {self.VALID_HIDDEN_ROLES}, got {hidden_role}"
-            )
+            raise ValueError(f"Invalid hidden_role: {hidden_role}")
 
         self.hidden_role = hidden_role
-        self.set_agents(agents)
-        self.set_words(words)
-
-        if hidden_role == "chameleon":
-            if len(self.words) == 0:
-                raise ValueError("words must be set before assigning role 'chameleon'.")
-
-        elif hidden_role == "non_chameleon":
-            if len(self.agents) == 0:
-                raise ValueError("agents must be set before assigning role 'non_chameleon'.")
-            if self.self_idx is None:
-                raise ValueError(
-                    f"Player {self.name} must appear in agents before assigning role 'non_chameleon'."
-                )
-        self.reset_beliefs()
-
-    def _get_device(self) -> torch.device:
-        modules = [
-            self.shared_belief_updater,
-            self.shared_player_belief_head,
-            self.shared_word_belief_head,
-            self.shared_speaker_embedding,
-        ]
-        for module in modules:
-            if module is not None:
-                try:
-                    return next(module.parameters()).device
-                except StopIteration:
-                    pass
-        return torch.device("cpu")
-
-    def _get_role_id(self) -> int:
-        if self.hidden_role == "non_chameleon":
-            return 0
-        if self.hidden_role == "chameleon":
-            return 1
-        raise ValueError("Player hidden role has not been initialized.")
-
-    def reset_beliefs(self):
-        if self.hidden_role is None:
-            self.beliefs = None
-            self.belief_state = None
-            return
-
-        device = self._get_device()
-
-        # Initialize recurrent belief state
-        self.belief_state = torch.zeros(
-            1, self.belief_state_size, dtype=torch.float32, device=device
-        )
-
-        if self.hidden_role == "chameleon":
-            num_words = len(self.words)
-            self.beliefs = torch.full(
-                (num_words,),
-                1.0 / num_words,
-                dtype=torch.float32,
-                device=device,
-            )
-
-        elif self.hidden_role == "non_chameleon":
-            num_players = len(self.agents)
-            self.beliefs = torch.zeros(num_players, dtype=torch.float32, device=device)
-            valid_indices = [i for i in range(num_players) if i != self.self_idx]
-            if len(valid_indices) == 0:
-                raise ValueError("Need at least one other player for non-chameleon beliefs.")
-            self.beliefs[valid_indices] = 1.0 / len(valid_indices)
-
-    def get_belief_logits(self, hidden_state):
-        if self.hidden_role is None:
-            raise ValueError("Player hidden role has not been initialized.")
-
-        if self.hidden_role == "non_chameleon":
-            logits = self.shared_player_belief_head(hidden_state)
-            logits = logits[..., :len(self.agents)]
-
-            if logits.dim() == 2 and logits.shape[0] == 1:
-                logits = logits.squeeze(0)
-
-            logits = logits.clone()
-            logits[self.self_idx] = float("-inf")
-            return logits
-
-        elif self.hidden_role == "chameleon":
-            logits = self.shared_word_belief_head(hidden_state)
-            logits = logits[..., :len(self.words)]
-
-            if logits.dim() == 2 and logits.shape[0] == 1:
-                logits = logits.squeeze(0)
-
-            return logits
-
-        raise ValueError(f"Unknown hidden_role: {self.hidden_role}")
-
-    def get_belief(self, hidden_state):
-        logits = self.get_belief_logits(hidden_state)
-        self.beliefs = torch.softmax(logits, dim=-1).squeeze(0)
-        return self.beliefs
-
-    def update_belief_state(
-        self,
-        message_embedding: torch.Tensor,
-        speaker_name: str,
-        word_embedding: torch.Tensor,
-        topic_idx: int
-    ):
-        """
-        Update this player's recurrent belief state from a new observed message embedding.
-
-        Args:
-            message_embedding: Tensor of shape (embedding_size,) or (1, embedding_size)
-            speaker_name: name of the player who produced the message
-        """
-        if self.hidden_role is None:
-            raise ValueError("Player hidden role has not been initialized.")
-        if self.shared_belief_updater is None:
-            raise ValueError("shared_belief_updater has not been set.")
-        if speaker_name not in self.agent_to_idx:
-            raise ValueError(f"Unknown speaker_name: {speaker_name}")
-
-        device = self._get_device()
-
-        if message_embedding.dim() == 1:
-            message_embedding = message_embedding.unsqueeze(0)
-        elif message_embedding.dim() != 2 or message_embedding.shape[0] != 1:
-            raise ValueError(
-                f"message_embedding must have shape (embedding_size,) or (1, embedding_size), "
-                f"got {tuple(message_embedding.shape)}"
-            )
-
-        message_embedding = message_embedding.to(device)
-
-        if message_embedding.shape[-1] != self.embedding_size:
-            raise ValueError(
-                f"Expected message embedding dim {self.embedding_size}, "
-                f"got {message_embedding.shape[-1]}"
-            )
-
-        if self.belief_state is None:
-            self.belief_state = torch.zeros(
-                1, self.belief_state_size, dtype=torch.float32, device=device
-            )
-
-        speaker_idx = torch.tensor(
-            [self.agent_to_idx[speaker_name]], dtype=torch.long, device=device
-        )
-
-        speaker_emb = self.shared_speaker_embedding(speaker_idx)
-        updater_input = torch.cat(
-            [message_embedding,speaker_emb],
-            dim=-1,
-        )
-
-        if self.hidden_role == "chameleon":
-            topic_idx_t = torch.tensor([topic_idx], dtype=torch.long, device=device)
-            topic_emb = self.shared_topic_embedding(topic_idx_t)
-            updater_input = torch.cat([message_embedding, speaker_emb, topic_emb], dim=-1)
-        else:
-            word_embedding = word_embedding.to(device)
-            if word_embedding.dim() == 1:
-                word_embedding = word_embedding.unsqueeze(0)
-            updater_input = torch.cat(
-                [updater_input, word_embedding],
-                dim=-1,
-            )
-            
-        self.belief_state = self.shared_belief_updater(
-            updater_input,
-            self.belief_state,
-        )
-
-        self.get_belief(self.belief_state)
-        return self.belief_state, self.beliefs
-
-    def save_beliefs(self):
-        beliefs = self.beliefs.detach().clone()
-        belief_state = self.belief_state.detach().clone()
-        
-        return beliefs, belief_state
-
-    def set_beliefs(self, beliefs: torch.Tensor, belief_state: torch.Tensor):
-        self.beliefs = beliefs
-        self.belief_state = belief_state
-        
-    def give_secret_word(self, word: str):
-        if word not in self.word_to_idx:
-            raise ValueError(f"Unknown word: {word}")
-        self.secret_word = word
-
-    def to_config(self) -> AgentConfig:
-        return AgentConfig(
-            name=self.name,
-            role_desc=self.role_desc,
-            backend=self.backend.to_config(),
-            global_prompt=self.global_prompt,
-        )
+        self.agents = list(agents)
+        self.words = list(words)
+        self._refresh_index_maps()
 
     def act(self, observation: List[Message]):
         try:
@@ -360,24 +110,31 @@ class Player(Agent):
                 "prompt_input_ids": None,
                 "prompt_attention_mask": None,
             }
-    
-    def vote(self, cur_votes: dict):
-        voted_player = ""
-        if self.hidden_role == "chameleon":
-            voted_player = random.choice([player for player in cur_votes.keys() if player != self.name])
-        else:
-            sampled_idx = torch.multinomial(self.beliefs, num_samples=1).item()
-            voted_player = self.agents[sampled_idx]
-        return voted_player
 
-    def guess(self):
-        sampled_idx = torch.multinomial(self.beliefs, num_samples=1).item()
-        guessed_word = self.words[sampled_idx]
-        return guessed_word
+    def vote_from_belief(self, player_belief: torch.Tensor):
+        probs = player_belief.clone()
+
+        if self.self_idx is not None:
+            probs[self.self_idx] = 0.0
+
+        probs = probs / probs.sum()
+        sampled_idx = torch.multinomial(probs, num_samples=1).item()
+        return self.agents[sampled_idx]
+
+    def guess_from_belief(self, word_belief: torch.Tensor):
+        sampled_idx = torch.multinomial(word_belief, num_samples=1).item()
+        return self.words[sampled_idx]
 
     def __call__(self, observation: List[Message]):
         return self.act(observation)
 
     def reset(self):
         self.backend.reset()
-        self.reset_beliefs()
+
+    def to_config(self) -> AgentConfig:
+        return AgentConfig(
+            name=self.name,
+            role_desc=self.role_desc,
+            backend=self.backend.to_config(),
+            global_prompt=self.global_prompt,
+        )

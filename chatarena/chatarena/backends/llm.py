@@ -8,7 +8,8 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 from ..message import SYSTEM_NAME as SYSTEM
 from ..message import Message
 from .base import IntelligenceBackend, register_backend
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModelForSequenceClassification
+
 from sentence_transformers import SentenceTransformer
 from peft import LoraConfig, get_peft_model, TaskType
 
@@ -40,7 +41,6 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
         max_new_tokens: int = 32, # IMPORTANT: Controls how many words can be in the clue.
         temperature: float = 0.7,
         do_sample: bool = True,
-        sentence_encoder_model: str = "sentence-transformers/all-MiniLM-L6-v2",
         normalize_sentence_embeddings: bool = True,
         lora_cfg: dict = None,
         **kwargs,
@@ -52,7 +52,6 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
             max_new_tokens=max_new_tokens,
             temperature=temperature,
             do_sample=do_sample,
-            sentence_encoder_model=sentence_encoder_model,
             normalize_sentence_embeddings=normalize_sentence_embeddings,
             **kwargs,
         )
@@ -63,7 +62,6 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
         self.temperature = temperature
         self.do_sample = do_sample
 
-        self.sentence_encoder_model_name = sentence_encoder_model
         self.normalize_sentence_embeddings = normalize_sentence_embeddings
 
         if torch_dtype == "auto":
@@ -76,13 +74,6 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
             dtype = torch.float32
         else:
             raise ValueError(f"Unsupported torch_dtype: {torch_dtype}")
-
-        if device >= 0 and torch.cuda.is_available():
-            device_map = {"": device}
-            sentence_encoder_device = f"cuda:{device}"
-        else:
-            device_map = "cpu"
-            sentence_encoder_device = "cpu"
 
         # Resolve to a local snapshot path first (avoids transformers 5.x
         # hang with local_files_only=True while still using the cache).
@@ -112,16 +103,12 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
         
         self.model.eval()
 
+        self.scorer_model_name = "BAAI/bge-reranker-v2-m3"
+        self.clue_scorer = AutoModelForSequenceClassification.from_pretrained(self.scorer_model_name)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.scorer_model_name)
+        
         if self.tokenizer.pad_token_id is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
-
-        self.sentence_encoder = SentenceTransformer(
-            self.sentence_encoder_model_name,
-            device=sentence_encoder_device,
-        )
-        self.sentence_embedding_size = (
-            self.sentence_encoder.get_sentence_embedding_dimension()
-        )
 
     @staticmethod
     def _to_chat_messages(
@@ -166,27 +153,6 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
             return_dict=True,
         )
         return {k: v.to(self.model.device) for k, v in inputs.items()}
-
-    @torch.no_grad()
-    def _encode_text(
-        self,
-        text: Union[str, List[str]],
-        convert_to_tensor: bool = True,
-        detach_to_cpu: bool = True,
-    ) -> torch.Tensor:
-        embedding = self.sentence_encoder.encode(
-            text,
-            convert_to_tensor=convert_to_tensor,
-            normalize_embeddings=self.normalize_sentence_embeddings,
-            show_progress_bar=False,
-        )
-
-        if convert_to_tensor:
-            embedding = embedding.float()
-            if detach_to_cpu:
-                embedding = embedding.detach().cpu()
-
-        return embedding
 
     @torch.no_grad()
     def get_message_embedding(
@@ -254,6 +220,59 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
             "prompt_attention_mask": inputs["attention_mask"],
         }
 
+    def _format(self, text_a: str, text_b: str):
+        """
+        Apply consistent formatting for clue-word pairs
+        """
+        return f"clue: {text_a}", f"word: {text_b}"
+
+    def score(self, text_a: str, text_b: str, normalize: bool = False):
+        text_a, text_b = self._format(text_a, text_b)
+
+        inputs = self.tokenizer(
+            text_a,
+            text_b,
+            return_tensors="pt",
+            truncation=True,
+            max_length=512
+        ).to(self.device)
+
+        with torch.no_grad():
+            logits = self.model(**inputs).logits.squeeze()
+
+        score = logits.item()
+
+        if normalize:
+            score = torch.sigmoid(torch.tensor(score)).item()
+
+        return score
+
+    def batch_score(self, pairs, normalize: bool = False):
+        """
+        pairs: List[(text_a, text_b)]
+        """
+        formatted_pairs = [self._format(a, b) for a, b in pairs]
+        texts_a, texts_b = zip(*formatted_pairs)
+
+        inputs = self.tokenizer(
+            list(texts_a),
+            list(texts_b),
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=512
+        ).to(self.device)
+
+        with torch.no_grad():
+            logits = self.model(**inputs).logits.squeeze(-1)
+
+        scores = logits.cpu()
+
+        if normalize:
+            scores = torch.softmax(torch.tensor(scores), dim = 0)
+
+        return scores
+    
     def query(
         self,
         agent_name: str,
