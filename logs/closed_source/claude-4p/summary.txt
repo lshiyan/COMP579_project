@@ -1,0 +1,115 @@
+experiment_id: claude-4p-25262
+backend: claude
+total_runs: 100
+chameleon_wins: 81
+non_chameleon_wins: 19
+unknown: 0
+total_time_s: 1325.1
+avg_time_per_game_s: 13.3
+
+win_method_summary:
+  chameleon-guess: 18
+  chameleon-votes: 63
+  non-chameleon: 19
+
+per_run_results:
+  run=1, chameleon_won=True, win_method=chameleon-votes, elapsed_s=11.07
+  run=2, chameleon_won=False, win_method=non-chameleon, elapsed_s=16.19
+  run=3, chameleon_won=True, win_method=chameleon-votes, elapsed_s=10.61
+  run=4, chameleon_won=True, win_method=chameleon-votes, elapsed_s=12.08
+  run=5, chameleon_won=True, win_method=chameleon-votes, elapsed_s=12.33
+  run=6, chameleon_won=True, win_method=chameleon-votes, elapsed_s=9.98
+  run=7, chameleon_won=True, win_method=chameleon-guess, elapsed_s=17.61
+  run=8, chameleon_won=True, win_method=chameleon-votes, elapsed_s=10.14
+  run=9, chameleon_won=True, win_method=chameleon-votes, elapsed_s=10.43
+  run=10, chameleon_won=False, win_method=non-chameleon, elapsed_s=14.94
+  run=11, chameleon_won=True, win_method=chameleon-guess, elapsed_s=11.36
+  run=12, chameleon_won=False, win_method=non-chameleon, elapsed_s=14.78
+  run=13, chameleon_won=True, win_method=chameleon-votes, elapsed_s=12.45
+  run=14, chameleon_won=True, win_method=chameleon-votes, elapsed_s=11.52
+  run=15, chameleon_won=True, win_method=chameleon-guess, elapsed_s=12.71
+  run=16, chameleon_won=True, win_method=chameleon-guess, elapsed_s=13.13
+  run=17, chameleon_won=True, win_method=chameleon-votes, elapsed_s=17.5
+  run=18, chameleon_won=True, win_method=chameleon-votes, elapsed_s=14.18
+  run=19, chameleon_won=True, win_method=chameleon-guess, elapsed_s=14.65
+  run=20, chameleon_won=True, win_method=chameleon-guess, elapsed_s=13.52
+  run=21, chameleon_won=False, win_method=non-chameleon, elapsed_s=16.74
+  run=22, chameleon_won=True, win_method=chameleon-votes, elapsed_s=9.1
+  run=23, chameleon_won=True, win_method=chameleon-votes, elapsed_s=9.94
+  run=24, chameleon_won=True, win_method=chameleon-votes, elapsed_s=10.26
+  run=25, chameleon_won=True, win_method=chameleon-votes, elapsed_s=13.0
+  run=26, chameleon_won=True, win_method=chameleon-votes, elapsed_s=11.62
+  run=27, chameleon_won=True, win_method=chameleon-votes, elapsed_s=15.68
+  run=28, chameleon_won=True, win_method=chameleon-votes, elapsed_s=11.42
+  run=29, chameleon_won=True, win_method=chameleon-guess, elapsed_s=12.21
+  run=30, chameleon_won=False, win_method=non-chameleon, elapsed_s=14.08
+  run=31, chameleon_won=True, win_method=chameleon-votes, elapsed_s=10.63
+  run=32, chameleon_won=True, win_method=chameleon-votes, elapsed_s=11.61
+  run=33, chameleon_won=True, win_method=chameleon-votes, elapsed_s=12.01
+  run=34, chameleon_won=True, win_method=chameleon-votes, elapsed_s=10.14
+  run=35, chameleon_won=True, win_method=chameleon-votes, elapsed_s=10.98
+  run=36, chameleon_won=True, win_method=chameleon-votes, elapsed_s=11.03
+  run=37, chameleon_won=True, win_method=chameleon-votes, elapsed_s=13.0
+  run=38, chameleon_won=True, win_method=chameleon-votes, elapsed_s=11.63
+  run=39, chameleon_won=True, win_method=chameleon-votes, elapsed_s=11.45
+  run=40, chameleon_won=True, win_method=chameleon-votes, elapsed_s=15.21
+  run=41, chameleon_won=False, win_method=non-chameleon, elapsed_s=11.28
+  run=42, chameleon_won=True, win_method=chameleon-guess, elapsed_s=13.98
+  run=43, chameleon_won=True, win_method=chameleon-votes, elapsed_s=12.78
+  run=44, chameleon_won=False, win_method=non-chameleon, elapsed_s=14.84
+  run=45, chameleon_won=True, win_method=chameleon-votes, elapsed_s=15.41
+  run=46, chameleon_won=True, win_method=chameleon-votes, elapsed_s=15.96
+  run=47, chameleon_won=True, win_method=chameleon-votes, elapsed_s=11.45
+  run=48, chameleon_won=True, win_method=chameleon-guess, elapsed_s=11.36
+  run=49, chameleon_won=True, win_method=chameleon-guess, elapsed_s=16.04
+  run=50, chameleon_won=True, win_method=chameleon-votes, elapsed_s=12.3
+  run=51, chameleon_won=True, win_method=chameleon-votes, elapsed_s=9.94
+  run=52, chameleon_won=True, win_method=chameleon-votes, elapsed_s=9.2
+  run=53, chameleon_won=True, win_method=chameleon-guess, elapsed_s=11.84
+  run=54, chameleon_won=True, win_method=chameleon-votes, elapsed_s=12.36
+  run=55, chameleon_won=True, win_method=chameleon-guess, elapsed_s=13.78
+  run=56, chameleon_won=True, win_method=chameleon-votes, elapsed_s=13.05
+  run=57, chameleon_won=True, win_method=chameleon-votes, elapsed_s=13.28
+  run=58, chameleon_won=True, win_method=chameleon-guess, elapsed_s=13.43
+  run=59, chameleon_won=True, win_method=chameleon-guess, elapsed_s=14.45
+  run=60, chameleon_won=True, win_method=chameleon-votes, elapsed_s=13.86
+  run=61, chameleon_won=True, win_method=chameleon-votes, elapsed_s=11.89
+  run=62, chameleon_won=False, win_method=non-chameleon, elapsed_s=14.89
+  run=63, chameleon_won=True, win_method=chameleon-votes, elapsed_s=10.87
+  run=64, chameleon_won=False, win_method=non-chameleon, elapsed_s=13.6
+  run=65, chameleon_won=True, win_method=chameleon-guess, elapsed_s=13.77
+  run=66, chameleon_won=True, win_method=chameleon-votes, elapsed_s=11.32
+  run=67, chameleon_won=True, win_method=chameleon-votes, elapsed_s=9.83
+  run=68, chameleon_won=True, win_method=chameleon-votes, elapsed_s=54.2
+  run=69, chameleon_won=True, win_method=chameleon-votes, elapsed_s=10.89
+  run=70, chameleon_won=False, win_method=non-chameleon, elapsed_s=16.13
+  run=71, chameleon_won=False, win_method=non-chameleon, elapsed_s=15.47
+  run=72, chameleon_won=False, win_method=non-chameleon, elapsed_s=16.39
+  run=73, chameleon_won=True, win_method=chameleon-votes, elapsed_s=9.66
+  run=74, chameleon_won=True, win_method=chameleon-votes, elapsed_s=11.62
+  run=75, chameleon_won=True, win_method=chameleon-votes, elapsed_s=12.78
+  run=76, chameleon_won=True, win_method=chameleon-votes, elapsed_s=16.2
+  run=77, chameleon_won=True, win_method=chameleon-votes, elapsed_s=12.72
+  run=78, chameleon_won=False, win_method=non-chameleon, elapsed_s=12.96
+  run=79, chameleon_won=True, win_method=chameleon-votes, elapsed_s=11.92
+  run=80, chameleon_won=True, win_method=chameleon-votes, elapsed_s=10.3
+  run=81, chameleon_won=False, win_method=non-chameleon, elapsed_s=15.17
+  run=82, chameleon_won=False, win_method=non-chameleon, elapsed_s=13.41
+  run=83, chameleon_won=True, win_method=chameleon-votes, elapsed_s=13.19
+  run=84, chameleon_won=True, win_method=chameleon-guess, elapsed_s=12.18
+  run=85, chameleon_won=True, win_method=chameleon-votes, elapsed_s=14.07
+  run=86, chameleon_won=True, win_method=chameleon-votes, elapsed_s=11.56
+  run=87, chameleon_won=False, win_method=non-chameleon, elapsed_s=13.3
+  run=88, chameleon_won=True, win_method=chameleon-guess, elapsed_s=15.22
+  run=89, chameleon_won=True, win_method=chameleon-votes, elapsed_s=10.22
+  run=90, chameleon_won=True, win_method=chameleon-guess, elapsed_s=12.3
+  run=91, chameleon_won=True, win_method=chameleon-votes, elapsed_s=11.58
+  run=92, chameleon_won=True, win_method=chameleon-votes, elapsed_s=13.09
+  run=93, chameleon_won=True, win_method=chameleon-votes, elapsed_s=12.94
+  run=94, chameleon_won=False, win_method=non-chameleon, elapsed_s=22.52
+  run=95, chameleon_won=True, win_method=chameleon-votes, elapsed_s=12.66
+  run=96, chameleon_won=False, win_method=non-chameleon, elapsed_s=12.94
+  run=97, chameleon_won=True, win_method=chameleon-votes, elapsed_s=14.79
+  run=98, chameleon_won=False, win_method=non-chameleon, elapsed_s=12.58
+  run=99, chameleon_won=True, win_method=chameleon-votes, elapsed_s=11.62
+  run=100, chameleon_won=True, win_method=chameleon-votes, elapsed_s=8.88
