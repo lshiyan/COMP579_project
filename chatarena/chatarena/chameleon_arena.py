@@ -355,7 +355,7 @@ class ChameleonArena:
         responses: list,
         advantages: torch.Tensor,
         eps: float = 0.2,
-        beta: float = 0.01,
+        beta: float = 0.2,
     ) -> torch.Tensor:
         device = next(player.backend.model.parameters()).device
         policy_loss = torch.tensor(0.0, device=device)

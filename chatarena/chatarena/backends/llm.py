@@ -39,8 +39,7 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
         device: int = -1,
         torch_dtype: str = "auto",
         max_new_tokens: int = 32, # IMPORTANT: Controls how many words can be in the clue.
-        temperature: float = 0.7,
-        do_sample: bool = True,
+        temperature: float = 1.0,
         normalize_sentence_embeddings: bool = True,
         lora_cfg: dict = None,
         **kwargs,
@@ -51,7 +50,6 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
             torch_dtype=torch_dtype,
             max_new_tokens=max_new_tokens,
             temperature=temperature,
-            do_sample=do_sample,
             normalize_sentence_embeddings=normalize_sentence_embeddings,
             **kwargs,
         )
@@ -60,8 +58,6 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
         self.device = device
         self.max_new_tokens = max_new_tokens
         self.temperature = temperature
-        self.do_sample = do_sample
-
         self.normalize_sentence_embeddings = normalize_sentence_embeddings
 
         if torch_dtype == "auto":
@@ -180,7 +176,7 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
             **inputs,
             max_new_tokens=self.max_new_tokens,
             temperature=self.temperature,
-            do_sample=self.do_sample,
+            do_sample=True,
             top_p=0.9,
             top_k=50,
             repetition_penalty=1.1,
