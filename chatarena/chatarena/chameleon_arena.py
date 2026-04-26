@@ -230,7 +230,21 @@ class ChameleonArena:
             env.player_names[i]: beliefs[i].item()
             for i in range(len(env.player_names))
         }
-        return {"shared": shared}
+        out = {"shared": shared}
+        word_belief = getattr(env, "word_belief", None)
+        candidate_words = (
+            env.topic_codes.get(env.topic)
+            if getattr(env, "topic_codes", None) is not None
+            and getattr(env, "topic", None) is not None
+            else None
+        )
+        if word_belief is not None and candidate_words is not None:
+            wb = word_belief.detach()
+            out["words"] = {
+                candidate_words[i]: wb[i].item()
+                for i in range(len(candidate_words))
+            }
+        return out
 
     def step(self) -> TimeStep:
         """Take a step in the game: one player takes an action and the environment updates."""

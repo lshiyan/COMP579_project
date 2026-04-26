@@ -5,18 +5,54 @@ from typing import Dict, List, Optional, Union
 import torch
 import torch.nn as nn
 
+from ..backends import TransformersHuggingFaceChat
 from ..chameleon_agent import SIGNAL_END_OF_CONVERSATION, Player
 from ..message import Message, MessagePool
 from .base import Environment, TimeStep, register_env
-from ..backends import TransformersHuggingFaceChat
-
 
 DEFAULT_TOPIC_CODES = {
-    "Fruits": ["Apple", "Banana", "Orange", "Grape", "Strawberry", "Pineapple", "Mango", "Watermelon"],
-    "Animals": ["Lion", "Elephant", "Giraffe", "Monkey", "Zebra", "Tiger", "Bear", "Kangaroo"],
-    "Sports": ["Soccer", "Basketball", "Tennis", "Baseball", "Swimming", "Cycling", "Volleyball", "Golf"],
-    "Food": ["pizza", "sushi", "hamburger", "pasta", "taco", "croissant", "ramen", "curry"],
+    "Fruits": [
+        "Apple",
+        "Banana",
+        "Orange",
+        "Grape",
+        "Strawberry",
+        "Pineapple",
+        "Mango",
+        "Watermelon",
+    ],
+    "Animals": [
+        "Lion",
+        "Elephant",
+        "Giraffe",
+        "Monkey",
+        "Zebra",
+        "Tiger",
+        "Bear",
+        "Kangaroo",
+    ],
+    "Sports": [
+        "Soccer",
+        "Basketball",
+        "Tennis",
+        "Baseball",
+        "Swimming",
+        "Cycling",
+        "Volleyball",
+        "Golf",
+    ],
+    "Food": [
+        "pizza",
+        "sushi",
+        "hamburger",
+        "pasta",
+        "taco",
+        "croissant",
+        "ramen",
+        "curry",
+    ],
 }
+
 
 @register_env
 class Chameleon(Environment):
@@ -28,8 +64,8 @@ class Chameleon(Environment):
         player_configs: List[dict],
         backend=None,
         sentence_encoder=None,
-        embedding_size: int = 384, #For clue embeddings
-        belief_state_size: int = 512, #Belief state size
+        embedding_size: int = 384,  # For clue embeddings
+        belief_state_size: int = 512,  # Belief state size
         speaker_embedding_size: int = 64,
         num_clue_rounds: int = 1,
         **kwargs,
@@ -61,11 +97,13 @@ class Chameleon(Environment):
         # Determine device for belief network modules
         if self.backend is not None:
             self.belief_device = next(self.backend.model.parameters()).device
-        elif self._sentence_encoder is not None and hasattr(self._sentence_encoder, 'device'):
+        elif self._sentence_encoder is not None and hasattr(
+            self._sentence_encoder, "device"
+        ):
             self.belief_device = self._sentence_encoder.device
         else:
             self.belief_device = torch.device("cpu")
-        
+
         self.players = [
             Player(
                 name=cfg["name"],
@@ -80,7 +118,9 @@ class Chameleon(Environment):
 
         self.player_names = [player.name for player in self.players]
         self.agent_to_idx = {name: i for i, name in enumerate(self.player_names)}
-        self.topic_to_idx = {topic: i for i, topic in enumerate(self.topic_codes.keys())}
+        self.topic_to_idx = {
+            topic: i for i, topic in enumerate(self.topic_codes.keys())
+        }
 
         super().__init__(
             player_names=self.player_names,
@@ -127,20 +167,25 @@ class Chameleon(Environment):
         num_players = len(self.player_names)
         num_words = len(current_words)
 
-        self.player_belief = torch.ones(
-            num_players,
-            dtype=torch.float32,
-            device=self.belief_device,
-        ) / num_players
+        self.player_belief = (
+            torch.ones(
+                num_players,
+                dtype=torch.float32,
+                device=self.belief_device,
+            )
+            / num_players
+        )
 
-        self.word_belief = torch.ones(
-            num_words,
-            dtype=torch.float32,
-            device=self.belief_device,
-        ) / num_words
-        
+        self.word_belief = (
+            torch.ones(
+                num_words,
+                dtype=torch.float32,
+                device=self.belief_device,
+            )
+            / num_words
+        )
+
         for player in self.players:
-            
             if player.name != self.chameleon_name:
                 player.set_hidden_role(
                     "non_chameleon",
@@ -153,7 +198,7 @@ class Chameleon(Environment):
                     self.player_names,
                     current_words,
                 )
-        
+
         self._current_turn = 0
         self._next_player_idx = 0
         self._current_phase = "give clues"
@@ -170,7 +215,7 @@ class Chameleon(Environment):
             "You are the chameleon!",
             visible_to=self.chameleon_name,
         )
-        
+
         clue_message = (
             f"Now everyone gives {self.num_clue_rounds} clue round(s) "
             f"(but don't give away the secret word). "
@@ -182,10 +227,8 @@ class Chameleon(Environment):
             f"We will start with {self.player_names[0]}. "
             f"Round 1/{self.num_clue_rounds}."
         )
-        
-        self._moderator_speak(
-            clue_message
-        )
+
+        self._moderator_speak(clue_message)
         self._current_turn = 1
 
         self._players_votes = {name: 0 for name in self.player_names}
@@ -208,7 +251,7 @@ class Chameleon(Environment):
             player_name,
             turn=self._current_turn,
         )
-    
+
     def get_votes(self):
         return self._players_votes
 
@@ -229,13 +272,14 @@ class Chameleon(Environment):
         pattern = r"\"(.+?)\""
         match = re.search(pattern, text)
         if match:
-            return (
-                match.group(1).lower().replace(" ", "")
-                == self.code.lower().replace(" ", "")
+            return match.group(1).lower().replace(" ", "") == self.code.lower().replace(
+                " ", ""
             )
         words = text.split()
         if len(words) >= len(self.code.split()):
-            guessed_term = "".join(words[-len(self.code.split()):]).lower().replace(".", "")
+            guessed_term = (
+                "".join(words[-len(self.code.split()) :]).lower().replace(".", "")
+            )
             return guessed_term == self.code.lower().replace(" ", "").replace(".", "")
         return False
 
@@ -266,9 +310,9 @@ class Chameleon(Environment):
         clues: List[str],
         lmb: float = 0.1,
         eta: float = 1.0,
-        alpha: float = 1.0,
+        alpha: float = 0.5,
         beta: float = 0.5,
-        gamma: float = 0.2,
+        gamma: float = 0.75,
     ):
         device = self.belief_device
         candidate_words = self.topic_codes[self.topic]
@@ -276,7 +320,6 @@ class Chameleon(Environment):
         speaker_idx = self.agent_to_idx[speaker_name]
         chameleon_idx = self.agent_to_idx[self.chameleon_name]
         true_word_idx = self.word_to_idx[self.code]
-
 
         rewards = []
 
@@ -303,24 +346,22 @@ class Chameleon(Environment):
             word_leak = q_new[true_word_idx] - self.word_belief[true_word_idx]
 
             clue_reward = (
-                alpha * expose_cham
-                - beta * self_suspicion
-                - gamma * word_leak
+                alpha * expose_cham - beta * self_suspicion - gamma * word_leak
             )
 
             rewards.append(clue_reward)
 
         return rewards
-        
+
     def update_belief(self, speaker_name, clue, lmb=1.0, eta=1.0):
         device = self.word_belief.device
         speaker_idx = self.agent_to_idx[speaker_name]
 
-        pairs = [(clue, w) for w in self.candidate_words]
+        pairs = [(clue, w) for w in self.topic_codes[self.topic]]
         scores = self.backend.batch_score(pairs)
         scores = torch.tensor(scores, dtype=torch.float32, device=device)
         scores = (scores - scores.mean()) / (scores.std() + 1e-6)
-         
+
         log_q = torch.log(self.word_belief + 1e-12) + lmb * scores
         q_new = torch.softmax(log_q, dim=0)
 
@@ -342,9 +383,9 @@ class Chameleon(Environment):
         if not self._initialized:
             self.reset()
 
-        assert (
-            player_name == self.get_next_player()
-        ), f"Wrong player! It is {self.get_next_player()} turn."
+        assert player_name == self.get_next_player(), (
+            f"Wrong player! It is {self.get_next_player()} turn."
+        )
 
         if self._current_phase == "give clues":
             message = Message(
@@ -354,7 +395,7 @@ class Chameleon(Environment):
             )
 
             self.message_pool.append_message(message)
-            
+
             self.update_belief(speaker_name=player_name, clue=action)
 
             self._current_turn += 1
@@ -403,7 +444,9 @@ class Chameleon(Environment):
                 rewards = self.get_zero_rewards()
                 terminal = False
                 timestep = TimeStep(
-                    observation=self.get_observation(), reward=rewards, terminal=terminal
+                    observation=self.get_observation(),
+                    reward=rewards,
+                    terminal=terminal,
                 )
             else:
                 accuse_correct, even_vote = True, False
@@ -432,9 +475,13 @@ class Chameleon(Environment):
                         )
                     rewards = self.get_rewards(chameleon_win=True)
                     terminal = True
-                    
+
                     timestep = TimeStep(
-                        observation=self.get_observation(), reward=rewards, terminal=terminal, chameleon_won=True, win_method="chameleon-votes"
+                        observation=self.get_observation(),
+                        reward=rewards,
+                        terminal=terminal,
+                        chameleon_won=True,
+                        win_method="chameleon-votes",
                     )
                 else:
                     self._moderator_speak(
@@ -445,9 +492,11 @@ class Chameleon(Environment):
                     self._current_phase = "guess"
                     rewards = self.get_zero_rewards()
                     terminal = False
-                    
+
                     timestep = TimeStep(
-                        observation=self.get_observation(), reward=rewards, terminal=terminal
+                        observation=self.get_observation(),
+                        reward=rewards,
+                        terminal=terminal,
                     )
 
                 self._current_turn += 1
@@ -467,15 +516,15 @@ class Chameleon(Environment):
                     f"{self.chameleon_name} won!"
                 )
                 rewards = self.get_rewards(chameleon_win=True)
-                
+
                 timestep = TimeStep(
                     observation=self.get_observation(),
                     reward=self.get_rewards(chameleon_win=True),
                     terminal=True,
                     chameleon_won=True,
-                    win_method="chameleon-guess"
+                    win_method="chameleon-guess",
                 )
-                
+
             else:
                 self._moderator_speak(
                     f"{player_name} guessed the code wrong! The secret word is {self.code}. "
@@ -488,7 +537,7 @@ class Chameleon(Environment):
                     reward=self.get_rewards(chameleon_win=False),
                     terminal=True,
                     chameleon_won=False,
-                    win_method="non-chameleon"
+                    win_method="non-chameleon",
                 )
 
         else:

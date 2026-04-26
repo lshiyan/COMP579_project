@@ -133,6 +133,7 @@ class GRPOExperiment:
             environment=env,
             global_prompt=self.global_prompt,
             logger=run_logger,
+            clue_number=3,
         )
 
     def _extract_run_result(self, final_timestep: Any, run_idx: int) -> dict[str, Any]:
