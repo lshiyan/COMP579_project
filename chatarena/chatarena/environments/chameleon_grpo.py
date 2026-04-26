@@ -376,7 +376,8 @@ class Chameleon(Environment):
         log_p[speaker_idx] = log_p[speaker_idx] + eta * suspicion_delta
         p_new = torch.softmax(log_p, dim=0)
 
-        self.word_belief = q_new
+        if speaker_name != self.chameleon_name:
+            self.word_belief = q_new
         self.player_belief = p_new
 
     def step(self, player_name: str, action: str) -> TimeStep:
