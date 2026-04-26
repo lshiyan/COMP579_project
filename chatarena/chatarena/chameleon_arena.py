@@ -350,8 +350,7 @@ class ChameleonArena:
                 )
 
         elif env._current_phase == "guess":
-            guessed_word = player.guess_from_belief(env.word_belief)
-            action = f"I guess the secret word is {guessed_word}."
+            action = player(observation)
 
             msg_count_before = len(env.message_pool._messages)
             timestep = env.step(player_name, action)
