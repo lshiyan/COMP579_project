@@ -350,7 +350,8 @@ class ChameleonArena:
                 )
 
         elif env._current_phase == "guess":
-            action = player(observation)
+            response = player(observation)
+            action = _get_action(response)
 
             msg_count_before = len(env.message_pool._messages)
             timestep = env.step(player_name, action)
@@ -371,7 +372,7 @@ class ChameleonArena:
         responses: list,
         advantages: torch.Tensor,
         eps: float = 0.2,
-        beta: float = 0.2,
+        beta: float = 0.3,
     ) -> torch.Tensor:
         device = next(player.backend.model.parameters()).device
         policy_loss = torch.tensor(0.0, device=device)

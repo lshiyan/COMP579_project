@@ -312,7 +312,7 @@ class Chameleon(Environment):
         eta: float = 1.0,
         alpha: float = 0.5,
         beta: float = 0.5,
-        gamma: float = 1.5,
+        gamma: float = 2,
     ):
         device = self.belief_device
         candidate_words = self.topic_codes[self.topic]
