@@ -241,23 +241,20 @@ class ChameleonArena:
 
         if env._current_phase == "give clues" and player_name != env.chameleon_name and self.train_policy:
             responses = [player(observation) for _ in range(self.clue_number)]
-            actions = [r["action"] for r in responses]
+            clues = [r["action"] for r in responses]
 
-            p_snap = env.player_belief.clone()
-            q_snap = env.word_belief.clone()
-            rewards = []
-            for action in actions:
-                env.player_belief = p_snap.clone()
-                env.word_belief = q_snap.clone()
-                with torch.no_grad():
-                    result = env.evaluate_clues(player_name, [action])
-                rewards.append(float(result["reward"].item()))
+            with torch.no_grad():
+                rewards = env.evaluate_clues(player_name, clues)
 
-            env.player_belief = p_snap
-            env.word_belief = q_snap
+            rewards = [
+                r.item() if isinstance(r, torch.Tensor) else float(r)
+                for r in rewards
+            ]
 
             rewards_tensor = torch.tensor(rewards, dtype=torch.float32)
-            advantages = (rewards_tensor - rewards_tensor.mean()) / (rewards_tensor.std() + 1e-8)
+            advantages = (rewards_tensor - rewards_tensor.mean()) / (
+                rewards_tensor.std(unbiased=False) + 1e-8
+            )
 
             grpo_losses = []
             for _ in range(self.num_grpo_epochs):
@@ -269,9 +266,6 @@ class ChameleonArena:
 
             best_idx = int(advantages.argmax().item())
             best_action = responses[best_idx]["action"]
-
-            with torch.no_grad():
-                env.evaluate_clues(player_name, [best_action])
 
             msg_count_before = len(env.message_pool._messages)
             timestep = env.step(player_name, best_action)
