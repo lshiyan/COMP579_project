@@ -15,9 +15,7 @@ DEFAULT_TOPIC_CODES = {
     "Fruits": ["Apple", "Banana", "Orange", "Grape", "Strawberry", "Pineapple", "Mango", "Watermelon"],
     "Animals": ["Lion", "Elephant", "Giraffe", "Monkey", "Zebra", "Tiger", "Bear", "Kangaroo"],
     "Sports": ["Soccer", "Basketball", "Tennis", "Baseball", "Swimming", "Cycling", "Volleyball", "Golf"],
-    "Countries": ["United States", "Canada", "Brazil", "United Kingdom", "France", "Germany", "Japan", "Australia"],
     "Food": ["pizza", "sushi", "hamburger", "pasta", "taco", "croissant", "ramen", "curry"],
-    "Movies": ["Titanic", "Inception", "Avatar", "Jaws", "Psycho", "Casablanca", "Alien", "Grease"],
 }
 
 @register_env
