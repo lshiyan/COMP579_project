@@ -320,7 +320,8 @@ class Chameleon(Environment):
         pairs = [(clue, w) for w in self.candidate_words]
         scores = self.backend.batch_score(pairs)
         scores = torch.tensor(scores, dtype=torch.float32, device=device)
-
+        scores = (scores - scores.mean()) / (scores.std() + 1e-6)
+         
         log_q = torch.log(self.word_belief + 1e-12) + lmb * scores
         q_new = torch.softmax(log_q, dim=0)
 
