@@ -288,10 +288,11 @@ class Chameleon(Environment):
             log_q = torch.log(self.word_belief + 1e-12) + lmb * scores
             q_new = torch.softmax(log_q, dim=0)
 
-            speaker_consistency = torch.sum(self.word_belief * scores)
+            true_idx = self.word_to_idx[self.code]
+            true_score = scores[true_idx]
 
             baseline = scores.mean()
-            suspicion_delta = baseline - speaker_consistency
+            suspicion_delta = baseline - true_score
 
             log_p = torch.log(self.player_belief + 1e-12)
             log_p[speaker_idx] = log_p[speaker_idx] + eta * suspicion_delta
@@ -323,11 +324,12 @@ class Chameleon(Environment):
         log_q = torch.log(self.word_belief + 1e-12) + lmb * scores
         q_new = torch.softmax(log_q, dim=0)
 
-        speaker_consistency = torch.sum(self.word_belief * scores)
+        true_idx = self.word_to_idx[self.code]
+        true_score = scores[true_idx]
 
         baseline = scores.mean()
 
-        suspicion_delta = baseline - speaker_consistency
+        suspicion_delta = baseline - true_score
 
         log_p = torch.log(self.player_belief + 1e-12)
         log_p[speaker_idx] = log_p[speaker_idx] + eta * suspicion_delta
