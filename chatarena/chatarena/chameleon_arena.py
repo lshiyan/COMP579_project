@@ -318,7 +318,10 @@ class ChameleonArena:
             )
 
         elif env._current_phase == "accuse":
-            voted_player = player.vote_from_belief(env.player_belief)
+            if player_name == env.chameleon_name:
+                voted_player = player.random_vote()
+            else:
+                voted_player = player.vote_from_belief(env.player_belief)
             action = f"I vote for {voted_player}."
 
             msg_count_before = len(env.message_pool._messages)
@@ -399,7 +402,7 @@ class ChameleonArena:
                     prompt_attention_mask=response["prompt_attention_mask"],
                     new_tokens=response["new_tokens"],
                 )
-                
+
             kl = torch.exp(log_prob_ref - log_prob_theta) - log_prob_ref + log_prob_theta - 1
             kl_loss = kl_loss + kl / seq_len
 

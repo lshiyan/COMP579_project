@@ -124,9 +124,12 @@ class Player(Agent):
         if self.self_idx is not None:
             probs[self.self_idx] = 0.0
 
-        probs = probs / probs.sum()
-        sampled_idx = torch.multinomial(probs, num_samples=1).item()
-        return self.agents[sampled_idx]
+        chosen_idx = torch.argmax(probs).item()
+        return self.agents[chosen_idx]
+
+    def random_vote(self):
+        others = [a for i, a in enumerate(self.agents) if i != self.self_idx]
+        return random.choice(others)
 
     def guess_from_belief(self, word_belief: torch.Tensor):
         sampled_idx = torch.multinomial(word_belief, num_samples=1).item()

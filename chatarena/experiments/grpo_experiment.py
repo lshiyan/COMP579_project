@@ -1,3 +1,4 @@
+import gc
 import logging
 import os
 import sys
@@ -5,6 +6,8 @@ import time
 from collections import Counter
 from pathlib import Path
 from typing import Any
+
+import torch
 
 from ..chatarena.backends import load_backend
 from ..chatarena.backends.llm import TransformersHuggingFaceChat
@@ -178,6 +181,9 @@ class GRPOExperiment:
         results: list[dict[str, Any]] = []
         for run_idx in range(1, self.num_runs + 1):
             results.append(self.run_once(arena, run_idx))
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
         arena.logger.close()
         self._log_summary(results)
         self._save_summary(results)
