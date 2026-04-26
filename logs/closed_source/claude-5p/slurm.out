@@ -1,0 +1,315 @@
+=== Job Info ===
+Job ID:   25263
+Node:     gpu-teach-01
+Backend:  claude
+Config:   chatarena/examples/chameleon_closed_5p.json
+Num runs: 100
+Python:   /home/2022/agagli13/envs/comp579/bin/python Python 3.10.12
+Fri Apr 24 09:57:07 PM EDT 2026
+================
+2026-04-24 21:57:53,601 [INFO] Loading config from chatarena/examples/chameleon_closed_5p.json
+2026-04-24 21:57:53,606 [INFO] Experiment ready | backend=claude | players=5 | runs=100
+2026-04-24 21:57:53,606 [INFO] Starting run 1/100 (max_steps=50)
+2026-04-24 21:58:09,691 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 21:58:09,694 [INFO] Finished run 1/100 | chameleon_won=True | win_method=chameleon-votes | 15.9s
+2026-04-24 21:58:09,694 [INFO] Starting run 2/100 (max_steps=50)
+2026-04-24 21:58:26,035 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 21:58:26,037 [INFO] Finished run 2/100 | chameleon_won=True | win_method=chameleon-votes | 16.1s
+2026-04-24 21:58:26,037 [INFO] Starting run 3/100 (max_steps=50)
+2026-04-24 21:58:41,824 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 21:58:41,826 [INFO] Finished run 3/100 | chameleon_won=True | win_method=chameleon-guess | 15.5s
+2026-04-24 21:58:41,826 [INFO] Starting run 4/100 (max_steps=50)
+2026-04-24 21:59:02,498 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 21:59:02,499 [INFO] Finished run 4/100 | chameleon_won=False | win_method=non-chameleon | 20.4s
+2026-04-24 21:59:02,499 [INFO] Starting run 5/100 (max_steps=50)
+2026-04-24 21:59:18,045 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 21:59:18,046 [INFO] Finished run 5/100 | chameleon_won=True | win_method=chameleon-votes | 15.3s
+2026-04-24 21:59:18,046 [INFO] Starting run 6/100 (max_steps=50)
+2026-04-24 21:59:35,184 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 21:59:35,184 [INFO] Finished run 6/100 | chameleon_won=True | win_method=chameleon-votes | 16.9s
+2026-04-24 21:59:35,185 [INFO] Starting run 7/100 (max_steps=50)
+2026-04-24 21:59:54,914 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 21:59:54,914 [INFO] Finished run 7/100 | chameleon_won=False | win_method=non-chameleon | 19.4s
+2026-04-24 21:59:54,914 [INFO] Starting run 8/100 (max_steps=50)
+2026-04-24 22:00:12,992 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:00:12,992 [INFO] Finished run 8/100 | chameleon_won=False | win_method=non-chameleon | 17.8s
+2026-04-24 22:00:12,992 [INFO] Starting run 9/100 (max_steps=50)
+2026-04-24 22:00:28,266 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:00:28,266 [INFO] Finished run 9/100 | chameleon_won=True | win_method=chameleon-votes | 15.0s
+2026-04-24 22:00:28,267 [INFO] Starting run 10/100 (max_steps=50)
+2026-04-24 22:00:42,482 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:00:42,483 [INFO] Finished run 10/100 | chameleon_won=True | win_method=chameleon-votes | 13.9s
+2026-04-24 22:00:42,483 [INFO] Starting run 11/100 (max_steps=50)
+2026-04-24 22:00:58,528 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:00:58,528 [INFO] Finished run 11/100 | chameleon_won=False | win_method=non-chameleon | 15.8s
+2026-04-24 22:00:58,528 [INFO] Starting run 12/100 (max_steps=50)
+2026-04-24 22:01:13,652 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:01:13,652 [INFO] Finished run 12/100 | chameleon_won=True | win_method=chameleon-votes | 14.8s
+2026-04-24 22:01:13,652 [INFO] Starting run 13/100 (max_steps=50)
+2026-04-24 22:01:30,135 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:01:30,136 [INFO] Finished run 13/100 | chameleon_won=True | win_method=chameleon-votes | 16.2s
+2026-04-24 22:01:30,136 [INFO] Starting run 14/100 (max_steps=50)
+2026-04-24 22:01:46,737 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:01:46,738 [INFO] Finished run 14/100 | chameleon_won=True | win_method=chameleon-guess | 16.3s
+2026-04-24 22:01:46,738 [INFO] Starting run 15/100 (max_steps=50)
+2026-04-24 22:01:59,254 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:01:59,254 [INFO] Finished run 15/100 | chameleon_won=True | win_method=chameleon-votes | 12.2s
+2026-04-24 22:01:59,254 [INFO] Starting run 16/100 (max_steps=50)
+2026-04-24 22:02:14,961 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:02:14,962 [INFO] Finished run 16/100 | chameleon_won=True | win_method=chameleon-votes | 15.4s
+2026-04-24 22:02:14,962 [INFO] Starting run 17/100 (max_steps=50)
+2026-04-24 22:02:30,136 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:02:30,136 [INFO] Finished run 17/100 | chameleon_won=True | win_method=chameleon-votes | 14.9s
+2026-04-24 22:02:30,136 [INFO] Starting run 18/100 (max_steps=50)
+2026-04-24 22:02:47,163 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:02:47,163 [INFO] Finished run 18/100 | chameleon_won=True | win_method=chameleon-guess | 16.7s
+2026-04-24 22:02:47,163 [INFO] Starting run 19/100 (max_steps=50)
+2026-04-24 22:03:02,137 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:03:02,138 [INFO] Finished run 19/100 | chameleon_won=True | win_method=chameleon-votes | 14.7s
+2026-04-24 22:03:02,138 [INFO] Starting run 20/100 (max_steps=50)
+2026-04-24 22:03:15,894 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:03:15,894 [INFO] Finished run 20/100 | chameleon_won=True | win_method=chameleon-votes | 13.5s
+2026-04-24 22:03:15,894 [INFO] Starting run 21/100 (max_steps=50)
+2026-04-24 22:03:31,759 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:03:31,759 [INFO] Finished run 21/100 | chameleon_won=True | win_method=chameleon-votes | 15.6s
+2026-04-24 22:03:31,759 [INFO] Starting run 22/100 (max_steps=50)
+2026-04-24 22:03:44,394 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:03:44,394 [INFO] Finished run 22/100 | chameleon_won=True | win_method=chameleon-votes | 12.4s
+2026-04-24 22:03:44,395 [INFO] Starting run 23/100 (max_steps=50)
+2026-04-24 22:04:01,403 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:04:01,403 [INFO] Finished run 23/100 | chameleon_won=True | win_method=chameleon-guess | 16.7s
+2026-04-24 22:04:01,403 [INFO] Starting run 24/100 (max_steps=50)
+2026-04-24 22:04:19,827 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:04:19,827 [INFO] Finished run 24/100 | chameleon_won=False | win_method=non-chameleon | 18.1s
+2026-04-24 22:04:19,827 [INFO] Starting run 25/100 (max_steps=50)
+2026-04-24 22:04:40,651 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:04:40,652 [INFO] Finished run 25/100 | chameleon_won=True | win_method=chameleon-guess | 20.5s
+2026-04-24 22:04:40,652 [INFO] Starting run 26/100 (max_steps=50)
+2026-04-24 22:04:53,100 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:04:53,101 [INFO] Finished run 26/100 | chameleon_won=True | win_method=chameleon-votes | 12.2s
+2026-04-24 22:04:53,101 [INFO] Starting run 27/100 (max_steps=50)
+2026-04-24 22:05:06,461 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:05:06,462 [INFO] Finished run 27/100 | chameleon_won=True | win_method=chameleon-votes | 13.1s
+2026-04-24 22:05:06,462 [INFO] Starting run 28/100 (max_steps=50)
+2026-04-24 22:05:26,071 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:05:26,072 [INFO] Finished run 28/100 | chameleon_won=True | win_method=chameleon-guess | 19.3s
+2026-04-24 22:05:26,072 [INFO] Starting run 29/100 (max_steps=50)
+2026-04-24 22:05:45,015 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:05:45,015 [INFO] Finished run 29/100 | chameleon_won=False | win_method=non-chameleon | 18.7s
+2026-04-24 22:05:45,016 [INFO] Starting run 30/100 (max_steps=50)
+2026-04-24 22:06:07,920 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:06:07,921 [INFO] Finished run 30/100 | chameleon_won=True | win_method=chameleon-votes | 22.6s
+2026-04-24 22:06:07,921 [INFO] Starting run 31/100 (max_steps=50)
+2026-04-24 22:06:25,720 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:06:25,720 [INFO] Finished run 31/100 | chameleon_won=True | win_method=chameleon-votes | 17.5s
+2026-04-24 22:06:25,720 [INFO] Starting run 32/100 (max_steps=50)
+2026-04-24 22:06:41,248 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:06:41,249 [INFO] Finished run 32/100 | chameleon_won=True | win_method=chameleon-votes | 15.3s
+2026-04-24 22:06:41,249 [INFO] Starting run 33/100 (max_steps=50)
+2026-04-24 22:06:56,283 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:06:56,283 [INFO] Finished run 33/100 | chameleon_won=True | win_method=chameleon-votes | 14.8s
+2026-04-24 22:06:56,283 [INFO] Starting run 34/100 (max_steps=50)
+2026-04-24 22:07:09,506 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:07:09,506 [INFO] Finished run 34/100 | chameleon_won=True | win_method=chameleon-votes | 12.9s
+2026-04-24 22:07:09,506 [INFO] Starting run 35/100 (max_steps=50)
+2026-04-24 22:07:23,109 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:07:23,109 [INFO] Finished run 35/100 | chameleon_won=True | win_method=chameleon-votes | 13.3s
+2026-04-24 22:07:23,110 [INFO] Starting run 36/100 (max_steps=50)
+2026-04-24 22:07:39,756 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:07:39,757 [INFO] Finished run 36/100 | chameleon_won=False | win_method=non-chameleon | 16.4s
+2026-04-24 22:07:39,757 [INFO] Starting run 37/100 (max_steps=50)
+2026-04-24 22:07:55,868 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:07:55,869 [INFO] Finished run 37/100 | chameleon_won=False | win_method=non-chameleon | 15.8s
+2026-04-24 22:07:55,869 [INFO] Starting run 38/100 (max_steps=50)
+2026-04-24 22:08:10,292 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:08:10,293 [INFO] Finished run 38/100 | chameleon_won=True | win_method=chameleon-votes | 14.1s
+2026-04-24 22:08:10,293 [INFO] Starting run 39/100 (max_steps=50)
+2026-04-24 22:08:23,438 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:08:23,439 [INFO] Finished run 39/100 | chameleon_won=True | win_method=chameleon-votes | 12.9s
+2026-04-24 22:08:23,439 [INFO] Starting run 40/100 (max_steps=50)
+2026-04-24 22:08:37,430 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:08:37,430 [INFO] Finished run 40/100 | chameleon_won=True | win_method=chameleon-guess | 13.7s
+2026-04-24 22:08:37,431 [INFO] Starting run 41/100 (max_steps=50)
+2026-04-24 22:08:55,890 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:08:55,890 [INFO] Finished run 41/100 | chameleon_won=True | win_method=chameleon-guess | 18.2s
+2026-04-24 22:08:55,891 [INFO] Starting run 42/100 (max_steps=50)
+2026-04-24 22:09:10,799 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:09:10,799 [INFO] Finished run 42/100 | chameleon_won=True | win_method=chameleon-votes | 14.6s
+2026-04-24 22:09:10,800 [INFO] Starting run 43/100 (max_steps=50)
+2026-04-24 22:09:25,721 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:09:25,721 [INFO] Finished run 43/100 | chameleon_won=True | win_method=chameleon-votes | 14.6s
+2026-04-24 22:09:25,722 [INFO] Starting run 44/100 (max_steps=50)
+2026-04-24 22:09:42,711 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:09:42,711 [INFO] Finished run 44/100 | chameleon_won=True | win_method=chameleon-votes | 16.7s
+2026-04-24 22:09:42,712 [INFO] Starting run 45/100 (max_steps=50)
+2026-04-24 22:10:00,144 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:10:00,145 [INFO] Finished run 45/100 | chameleon_won=True | win_method=chameleon-guess | 17.2s
+2026-04-24 22:10:00,145 [INFO] Starting run 46/100 (max_steps=50)
+2026-04-24 22:10:14,043 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:10:14,043 [INFO] Finished run 46/100 | chameleon_won=True | win_method=chameleon-votes | 13.6s
+2026-04-24 22:10:14,044 [INFO] Starting run 47/100 (max_steps=50)
+2026-04-24 22:10:28,581 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:10:28,581 [INFO] Finished run 47/100 | chameleon_won=True | win_method=chameleon-votes | 14.2s
+2026-04-24 22:10:28,581 [INFO] Starting run 48/100 (max_steps=50)
+2026-04-24 22:10:45,414 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:10:45,415 [INFO] Finished run 48/100 | chameleon_won=True | win_method=chameleon-guess | 16.6s
+2026-04-24 22:10:45,415 [INFO] Starting run 49/100 (max_steps=50)
+2026-04-24 22:14:04,185 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:14:04,188 [INFO] Finished run 49/100 | chameleon_won=True | win_method=chameleon-votes | 198.5s
+2026-04-24 22:14:04,188 [INFO] Starting run 50/100 (max_steps=50)
+2026-04-24 22:14:17,859 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:14:17,860 [INFO] Finished run 50/100 | chameleon_won=True | win_method=chameleon-votes | 13.4s
+2026-04-24 22:14:17,860 [INFO] Starting run 51/100 (max_steps=50)
+2026-04-24 22:14:38,224 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:14:38,224 [INFO] Finished run 51/100 | chameleon_won=True | win_method=chameleon-votes | 20.1s
+2026-04-24 22:14:38,225 [INFO] Starting run 52/100 (max_steps=50)
+2026-04-24 22:14:57,656 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:14:57,656 [INFO] Finished run 52/100 | chameleon_won=True | win_method=chameleon-guess | 19.2s
+2026-04-24 22:14:57,657 [INFO] Starting run 53/100 (max_steps=50)
+2026-04-24 22:15:13,081 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:15:13,081 [INFO] Finished run 53/100 | chameleon_won=True | win_method=chameleon-votes | 15.1s
+2026-04-24 22:15:13,081 [INFO] Starting run 54/100 (max_steps=50)
+2026-04-24 22:15:35,158 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:15:35,158 [INFO] Finished run 54/100 | chameleon_won=True | win_method=chameleon-guess | 21.8s
+2026-04-24 22:15:35,158 [INFO] Starting run 55/100 (max_steps=50)
+2026-04-24 22:15:49,889 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:15:49,889 [INFO] Finished run 55/100 | chameleon_won=True | win_method=chameleon-votes | 14.5s
+2026-04-24 22:15:49,889 [INFO] Starting run 56/100 (max_steps=50)
+2026-04-24 22:16:04,027 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:16:04,027 [INFO] Finished run 56/100 | chameleon_won=True | win_method=chameleon-votes | 13.9s
+2026-04-24 22:16:04,028 [INFO] Starting run 57/100 (max_steps=50)
+2026-04-24 22:16:25,034 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:16:25,035 [INFO] Finished run 57/100 | chameleon_won=True | win_method=chameleon-guess | 20.7s
+2026-04-24 22:16:25,035 [INFO] Starting run 58/100 (max_steps=50)
+2026-04-24 22:16:42,770 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:16:42,770 [INFO] Finished run 58/100 | chameleon_won=True | win_method=chameleon-votes | 17.4s
+2026-04-24 22:16:42,770 [INFO] Starting run 59/100 (max_steps=50)
+2026-04-24 22:16:56,739 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:16:56,740 [INFO] Finished run 59/100 | chameleon_won=True | win_method=chameleon-votes | 13.7s
+2026-04-24 22:16:56,740 [INFO] Starting run 60/100 (max_steps=50)
+2026-04-24 22:17:12,305 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:17:12,305 [INFO] Finished run 60/100 | chameleon_won=False | win_method=non-chameleon | 15.3s
+2026-04-24 22:17:12,305 [INFO] Starting run 61/100 (max_steps=50)
+2026-04-24 22:17:29,339 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:17:29,339 [INFO] Finished run 61/100 | chameleon_won=True | win_method=chameleon-votes | 16.8s
+2026-04-24 22:17:29,340 [INFO] Starting run 62/100 (max_steps=50)
+2026-04-24 22:17:44,787 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:17:44,788 [INFO] Finished run 62/100 | chameleon_won=True | win_method=chameleon-votes | 15.2s
+2026-04-24 22:17:44,788 [INFO] Starting run 63/100 (max_steps=50)
+2026-04-24 22:18:03,108 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:18:03,108 [INFO] Finished run 63/100 | chameleon_won=True | win_method=chameleon-votes | 18.0s
+2026-04-24 22:18:03,108 [INFO] Starting run 64/100 (max_steps=50)
+2026-04-24 22:18:19,700 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:18:19,701 [INFO] Finished run 64/100 | chameleon_won=True | win_method=chameleon-guess | 16.3s
+2026-04-24 22:18:19,701 [INFO] Starting run 65/100 (max_steps=50)
+2026-04-24 22:18:32,516 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:18:32,516 [INFO] Finished run 65/100 | chameleon_won=True | win_method=chameleon-votes | 12.5s
+2026-04-24 22:18:32,516 [INFO] Starting run 66/100 (max_steps=50)
+2026-04-24 22:18:48,831 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:18:48,832 [INFO] Finished run 66/100 | chameleon_won=False | win_method=non-chameleon | 16.0s
+2026-04-24 22:18:48,832 [INFO] Starting run 67/100 (max_steps=50)
+2026-04-24 22:19:04,149 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:19:04,149 [INFO] Finished run 67/100 | chameleon_won=True | win_method=chameleon-votes | 15.0s
+2026-04-24 22:19:04,149 [INFO] Starting run 68/100 (max_steps=50)
+2026-04-24 22:19:19,045 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:19:19,045 [INFO] Finished run 68/100 | chameleon_won=True | win_method=chameleon-votes | 14.6s
+2026-04-24 22:19:19,045 [INFO] Starting run 69/100 (max_steps=50)
+2026-04-24 22:19:36,114 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:19:36,114 [INFO] Finished run 69/100 | chameleon_won=True | win_method=chameleon-votes | 16.8s
+2026-04-24 22:19:36,115 [INFO] Starting run 70/100 (max_steps=50)
+2026-04-24 22:19:52,604 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:19:52,604 [INFO] Finished run 70/100 | chameleon_won=True | win_method=chameleon-votes | 16.2s
+2026-04-24 22:19:52,605 [INFO] Starting run 71/100 (max_steps=50)
+2026-04-24 22:20:08,241 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:20:08,241 [INFO] Finished run 71/100 | chameleon_won=True | win_method=chameleon-votes | 15.4s
+2026-04-24 22:20:08,241 [INFO] Starting run 72/100 (max_steps=50)
+2026-04-24 22:20:28,749 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:20:28,750 [INFO] Finished run 72/100 | chameleon_won=True | win_method=chameleon-votes | 20.2s
+2026-04-24 22:20:28,750 [INFO] Starting run 73/100 (max_steps=50)
+2026-04-24 22:20:44,268 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:20:44,268 [INFO] Finished run 73/100 | chameleon_won=True | win_method=chameleon-votes | 15.3s
+2026-04-24 22:20:44,268 [INFO] Starting run 74/100 (max_steps=50)
+2026-04-24 22:20:57,087 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:20:57,087 [INFO] Finished run 74/100 | chameleon_won=True | win_method=chameleon-votes | 12.5s
+2026-04-24 22:20:57,087 [INFO] Starting run 75/100 (max_steps=50)
+2026-04-24 22:21:17,902 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:21:17,903 [INFO] Finished run 75/100 | chameleon_won=True | win_method=chameleon-votes | 20.5s
+2026-04-24 22:21:17,903 [INFO] Starting run 76/100 (max_steps=50)
+2026-04-24 22:21:31,750 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:21:31,751 [INFO] Finished run 76/100 | chameleon_won=True | win_method=chameleon-votes | 13.6s
+2026-04-24 22:21:31,751 [INFO] Starting run 77/100 (max_steps=50)
+2026-04-24 22:21:48,262 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:21:48,263 [INFO] Finished run 77/100 | chameleon_won=True | win_method=chameleon-votes | 16.2s
+2026-04-24 22:21:48,263 [INFO] Starting run 78/100 (max_steps=50)
+2026-04-24 22:22:06,120 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:22:06,120 [INFO] Finished run 78/100 | chameleon_won=True | win_method=chameleon-votes | 17.6s
+2026-04-24 22:22:06,120 [INFO] Starting run 79/100 (max_steps=50)
+2026-04-24 22:22:24,218 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:22:24,218 [INFO] Finished run 79/100 | chameleon_won=True | win_method=chameleon-votes | 17.8s
+2026-04-24 22:22:24,219 [INFO] Starting run 80/100 (max_steps=50)
+2026-04-24 22:22:42,707 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:22:42,708 [INFO] Finished run 80/100 | chameleon_won=False | win_method=non-chameleon | 18.2s
+2026-04-24 22:22:42,708 [INFO] Starting run 81/100 (max_steps=50)
+2026-04-24 22:22:55,858 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:22:55,859 [INFO] Finished run 81/100 | chameleon_won=True | win_method=chameleon-votes | 12.9s
+2026-04-24 22:22:55,859 [INFO] Starting run 82/100 (max_steps=50)
+2026-04-24 22:23:13,818 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:23:13,818 [INFO] Finished run 82/100 | chameleon_won=True | win_method=chameleon-guess | 17.7s
+2026-04-24 22:23:13,819 [INFO] Starting run 83/100 (max_steps=50)
+2026-04-24 22:23:30,309 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:23:30,309 [INFO] Finished run 83/100 | chameleon_won=False | win_method=non-chameleon | 16.2s
+2026-04-24 22:23:30,309 [INFO] Starting run 84/100 (max_steps=50)
+2026-04-24 22:23:43,318 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:23:43,318 [INFO] Finished run 84/100 | chameleon_won=True | win_method=chameleon-votes | 12.7s
+2026-04-24 22:23:43,318 [INFO] Starting run 85/100 (max_steps=50)
+2026-04-24 22:24:01,795 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:24:01,795 [INFO] Finished run 85/100 | chameleon_won=False | win_method=non-chameleon | 18.2s
+2026-04-24 22:24:01,796 [INFO] Starting run 86/100 (max_steps=50)
+2026-04-24 22:24:20,509 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:24:20,509 [INFO] Finished run 86/100 | chameleon_won=False | win_method=non-chameleon | 18.4s
+2026-04-24 22:24:20,509 [INFO] Starting run 87/100 (max_steps=50)
+2026-04-24 22:24:38,995 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:24:38,995 [INFO] Finished run 87/100 | chameleon_won=False | win_method=non-chameleon | 18.2s
+2026-04-24 22:24:38,995 [INFO] Starting run 88/100 (max_steps=50)
+2026-04-24 22:24:54,479 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:24:54,480 [INFO] Finished run 88/100 | chameleon_won=True | win_method=chameleon-votes | 15.2s
+2026-04-24 22:24:54,480 [INFO] Starting run 89/100 (max_steps=50)
+2026-04-24 22:25:09,608 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:25:09,608 [INFO] Finished run 89/100 | chameleon_won=True | win_method=chameleon-votes | 14.8s
+2026-04-24 22:25:09,608 [INFO] Starting run 90/100 (max_steps=50)
+2026-04-24 22:25:25,689 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:25:25,689 [INFO] Finished run 90/100 | chameleon_won=True | win_method=chameleon-votes | 15.8s
+2026-04-24 22:25:25,689 [INFO] Starting run 91/100 (max_steps=50)
+2026-04-24 22:25:42,043 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:25:42,043 [INFO] Finished run 91/100 | chameleon_won=True | win_method=chameleon-votes | 16.1s
+2026-04-24 22:25:42,043 [INFO] Starting run 92/100 (max_steps=50)
+2026-04-24 22:25:55,943 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:25:55,944 [INFO] Finished run 92/100 | chameleon_won=True | win_method=chameleon-votes | 13.6s
+2026-04-24 22:25:55,944 [INFO] Starting run 93/100 (max_steps=50)
+2026-04-24 22:26:15,559 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:26:15,560 [INFO] Finished run 93/100 | chameleon_won=False | win_method=non-chameleon | 19.3s
+2026-04-24 22:26:15,560 [INFO] Starting run 94/100 (max_steps=50)
+2026-04-24 22:26:29,183 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:26:29,183 [INFO] Finished run 94/100 | chameleon_won=True | win_method=chameleon-votes | 13.3s
+2026-04-24 22:26:29,183 [INFO] Starting run 95/100 (max_steps=50)
+2026-04-24 22:26:45,800 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:26:45,801 [INFO] Finished run 95/100 | chameleon_won=True | win_method=chameleon-votes | 16.4s
+2026-04-24 22:26:45,801 [INFO] Starting run 96/100 (max_steps=50)
+2026-04-24 22:26:58,294 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:26:58,294 [INFO] Finished run 96/100 | chameleon_won=True | win_method=chameleon-votes | 12.2s
+2026-04-24 22:26:58,294 [INFO] Starting run 97/100 (max_steps=50)
+2026-04-24 22:27:13,365 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:27:13,365 [INFO] Finished run 97/100 | chameleon_won=True | win_method=chameleon-votes | 14.8s
+2026-04-24 22:27:13,365 [INFO] Starting run 98/100 (max_steps=50)
+2026-04-24 22:27:32,010 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:27:32,011 [INFO] Finished run 98/100 | chameleon_won=True | win_method=chameleon-votes | 18.4s
+2026-04-24 22:27:32,011 [INFO] Starting run 99/100 (max_steps=50)
+2026-04-24 22:27:56,795 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:27:56,795 [INFO] Finished run 99/100 | chameleon_won=False | win_method=non-chameleon | 24.5s
+2026-04-24 22:27:56,796 [INFO] Starting run 100/100 (max_steps=50)
+2026-04-24 22:28:11,186 [INFO] Transcript saved → logs/claude-5p-25263_transcript.txt
+2026-04-24 22:28:11,186 [INFO] Finished run 100/100 | chameleon_won=True | win_method=chameleon-votes | 14.1s
+2026-04-24 22:28:11,187 [INFO] Summary | total_runs=100 | chameleon_wins=83 | non_chameleon_wins=17 | unknown=0
+2026-04-24 22:28:11,195 [INFO] Summary saved → logs/claude-5p-25263_summary.txt
+=== Done ===
+Fri Apr 24 10:28:12 PM EDT 2026
