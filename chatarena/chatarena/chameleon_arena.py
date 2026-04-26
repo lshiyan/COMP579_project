@@ -164,7 +164,7 @@ class ChameleonArena:
     """Utility class that manages the game environment and players."""
 
     def __init__(
-        self, environment: Chameleon, global_prompt: str = None, clue_number: int = 3, num_grpo_epochs: int = 3, policy_lr: int = 1e-4, belief_lr: int = 1e-5,
+        self, environment: Chameleon, global_prompt: str = None, clue_number: int = 4, num_grpo_epochs: int = 3, policy_lr: int = 1e-4, belief_lr: int = 1e-5,
         logger: RunLogger | None = None,
     ):
         # Create a container for the players and environment and reset the game
