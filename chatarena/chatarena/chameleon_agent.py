@@ -8,6 +8,8 @@ from typing import List, Union, Sequence, Optional
 import torch
 import torch.nn as nn
 from tenacity import RetryError
+from contextlib import nullcontext
+
 
 from .backends import IntelligenceBackend, load_backend, TransformersHuggingFaceChat
 from .config import AgentConfig, BackendConfig, Configurable
@@ -88,13 +90,18 @@ class Player(Agent):
 
     def act(self, observation: List[Message]):
         try:
-            return self.backend.query(
-                agent_name=self.name,
-                role_desc=self.role_desc,
-                history_messages=observation,
-                global_prompt=self.global_prompt,
-                request_msg=None,
-            )
+            
+            context = self.backend.model.disable_adapter() if self.hidden_role == "chameleon" else nullcontext()
+            
+            with context:
+                return self.backend.query(
+                    agent_name=self.name,
+                    role_desc=self.role_desc,
+                    history_messages=observation,
+                    global_prompt=self.global_prompt,
+                    request_msg=None,
+                )
+                
         except RetryError as e:
             err_msg = (
                 f"Agent {self.name} failed to generate a response. "
