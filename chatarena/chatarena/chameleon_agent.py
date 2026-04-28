@@ -110,7 +110,7 @@ class Player(Agent):
             )
             logging.warning(err_msg)
             return {
-                "response": SIGNAL_END_OF_CONVERSATION + err_msg,
+                "action": SIGNAL_END_OF_CONVERSATION + err_msg,
                 "new_tokens": None,
                 "token_logprobs": None,
                 "seq_logprob": None,

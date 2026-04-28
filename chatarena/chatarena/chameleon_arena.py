@@ -164,8 +164,9 @@ class ChameleonArena:
     """Utility class that manages the game environment and players."""
 
     def __init__(
-        self, environment: Chameleon, global_prompt: str = None, clue_number: int = 4, num_grpo_epochs: int = 3, policy_lr: int = 1e-4, belief_lr: int = 1e-5,
+        self, environment: Chameleon, global_prompt: str = None, clue_number: int = 8, num_grpo_epochs: int = 3, policy_lr: int = 1e-4, belief_lr: int = 1e-5,
         logger: RunLogger | None = None,
+        train_policy: bool | None = None,
     ):
         # Create a container for the players and environment and reset the game
         self.environment = environment
@@ -176,10 +177,13 @@ class ChameleonArena:
         self.uuid = uuid.uuid4()  # Generate a unique id for the game
         self.num_grpo_epochs = num_grpo_epochs
 
-        # GRPO policy training is only possible with a trainable HuggingFace backend
-        self.train_policy = (
+        # GRPO policy training requires a trainable HF backend; caller can force-disable for eval
+        backend_trainable = (
             self.environment.backend is not None
             and hasattr(self.environment.backend, 'model')
+        )
+        self.train_policy = backend_trainable if train_policy is None else (
+            backend_trainable and train_policy
         )
 
         if self.train_policy:
@@ -274,8 +278,6 @@ class ChameleonArena:
             for _ in range(self.num_grpo_epochs):
                 loss = self._compute_grpo_loss(player, responses, advantages)
                 grpo_losses.append(loss.item())
-                self.policy_optimizer.zero_grad()
-                loss.backward()
                 self.policy_optimizer.step()
 
             best_idx = int(advantages.argmax().item())
@@ -375,8 +377,10 @@ class ChameleonArena:
         beta: float = 0.3,
     ) -> torch.Tensor:
         device = next(player.backend.model.parameters()).device
-        policy_loss = torch.tensor(0.0, device=device)
-        kl_loss = torch.tensor(0.0, device=device)
+        n = len(responses)
+        total_value = 0.0
+
+        self.policy_optimizer.zero_grad()
 
         for i, response in enumerate(responses):
             seq_len = response["new_tokens"].shape[1]
@@ -389,13 +393,12 @@ class ChameleonArena:
                 new_tokens=response["new_tokens"],
             )
 
-            ratio = torch.exp((log_prob_theta - log_prob_old))
+            ratio = torch.exp(log_prob_theta - log_prob_old)
             adv = advantages[i].to(device)
-
             clipped = torch.clamp(ratio, 1 - eps, 1 + eps)
-            policy_loss = policy_loss - torch.min(ratio * adv, clipped * adv) / seq_len
+            policy_loss_i = -torch.min(ratio * adv, clipped * adv) / seq_len
 
-            with player.backend.model.disable_adapter():
+            with player.backend.model.disable_adapter(), torch.no_grad():
                 log_prob_ref = self._compute_seq_logprob(
                     player.backend.model,
                     prompt_input_ids=response["prompt_input_ids"],
@@ -403,10 +406,18 @@ class ChameleonArena:
                     new_tokens=response["new_tokens"],
                 )
 
-            kl = torch.exp(log_prob_ref - log_prob_theta) - log_prob_ref + log_prob_theta - 1
-            kl_loss = kl_loss + kl / seq_len
+            kl_i = (
+                torch.exp(log_prob_ref - log_prob_theta)
+                - log_prob_ref
+                + log_prob_theta
+                - 1
+            ) / seq_len
 
-        return (policy_loss + beta * kl_loss) / len(responses)
+            per_response_loss = (policy_loss_i + beta * kl_i) / n
+            per_response_loss.backward()
+            total_value += per_response_loss.item()
+
+        return torch.tensor(total_value, device=device)
 
     def _compute_seq_logprob(
         self,
@@ -428,9 +439,10 @@ class ChameleonArena:
         )
 
         outputs = model(input_ids=full_ids, attention_mask=full_mask)
-        logits = outputs.logits
-
-        shift_logits = logits[:, prompt_len - 1:-1, :]
+        # Materialize only the slice we use; allows the full-vocab logits tensor
+        # (1 × prompt_len × vocab — ~160 MB on Qwen) to be freed below.
+        shift_logits = outputs.logits[:, prompt_len - 1:-1, :].clone()
+        del outputs
         shift_labels = new_tokens.to(device)
 
         log_probs = torch.log_softmax(shift_logits, dim=-1)
