@@ -93,6 +93,24 @@ def main():
         default=32,
         help="Max new tokens to generate per turn.",
     )
+    os_group.add_argument(
+        "--eval-only",
+        action="store_true",
+        help="GRPO mode only: skip policy updates and just play games with the current weights.",
+    )
+    os_group.add_argument(
+        "--eval-runs",
+        type=int,
+        default=0,
+        help="GRPO mode only: after training num_runs games, play this many additional games "
+             "with frozen LoRA weights for evaluation. Logs go to <experiment-id>_eval_*.",
+    )
+    os_group.add_argument(
+        "--clue-number",
+        type=int,
+        default=8,
+        help="GRPO mode only: number of candidate clues each non-chameleon generates per turn.",
+    )
 
     args = parser.parse_args()
 
@@ -171,6 +189,9 @@ def main():
             max_steps=args.max_steps,
             log_dir=args.log_dir,
             save_transcript=args.save_transcript,
+            eval_only=args.eval_only,
+            eval_num_runs=args.eval_runs,
+            clue_number=args.clue_number,
         )
         if args.temperature is not None:
             kwargs["temperature"] = args.temperature

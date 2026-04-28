@@ -142,7 +142,15 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
                 {"role": "user", "content": f"[{SYSTEM}]: {request_msg.content}"}
             )
 
-        return messages
+        # Some chat templates (e.g. Mistral) require strict user/assistant alternation.
+        # Merge consecutive same-role messages so the template doesn't reject the conversation.
+        merged = []
+        for m in messages:
+            if merged and merged[-1]["role"] == m["role"]:
+                merged[-1]["content"] = merged[-1]["content"] + "\n" + m["content"]
+            else:
+                merged.append(dict(m))
+        return merged
 
     def _tokenize_messages(
         self,

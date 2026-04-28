@@ -21,6 +21,13 @@ source ~/envs/comp579/bin/activate
 # ── Project ──
 cd ~/COMP579_project
 
+# ── Parameters (override via environment) ──
+NUM_RUNS=${NUM_RUNS:-10}
+EVAL_RUNS=${EVAL_RUNS:-0}
+MODEL=${MODEL:-Qwen/Qwen2.5-7B-Instruct}
+SCORER_MODEL=${SCORER_MODEL:-BAAI/bge-reranker-v2-m3}
+CLUE_NUMBER=${CLUE_NUMBER:-8}
+
 # ── Model cache in shared memory ──
 export HF_HOME=/dev/shm/${USER}_hf_${SLURM_JOB_ID}
 export TRANSFORMERS_CACHE="$HF_HOME"
@@ -29,8 +36,8 @@ mkdir -p "$HF_HOME"
 echo "Downloading models to $HF_HOME (tmpfs/RAM) ..."
 python -c "
 from huggingface_hub import snapshot_download
-snapshot_download('Qwen/Qwen2.5-7B-Instruct')
-snapshot_download('sentence-transformers/all-MiniLM-L6-v2')
+snapshot_download('$MODEL')
+snapshot_download('$SCORER_MODEL')
 print('Models ready.')
 "
 
@@ -40,6 +47,7 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 # ── Diagnostics ──
 echo "=== Job Info ==="
 echo "Job ID: $SLURM_JOB_ID"
+echo "Model:  $MODEL"
 echo "Node:   $SLURM_NODELIST"
 echo "GPUs:   $CUDA_VISIBLE_DEVICES"
 echo "Python: $(which python) $(python --version 2>&1)"
@@ -47,14 +55,13 @@ date
 nvidia-smi
 echo "================"
 
-# ── Parameters (override via environment) ──
-NUM_RUNS=${NUM_RUNS:-10}
-
 # ── Run experiment ──
 python run_experiment.py grpo \
-    --model Qwen/Qwen2.5-7B-Instruct \
+    --model "$MODEL" \
     --device 0 \
     --num-runs "$NUM_RUNS" \
+    --eval-runs "$EVAL_RUNS" \
+    --clue-number "$CLUE_NUMBER" \
     --experiment-id "grpo-${SLURM_JOB_ID}" \
     --save-transcript
 
