@@ -27,6 +27,8 @@ EVAL_RUNS=${EVAL_RUNS:-0}
 MODEL=${MODEL:-Qwen/Qwen2.5-7B-Instruct}
 SCORER_MODEL=${SCORER_MODEL:-BAAI/bge-reranker-v2-m3}
 CLUE_NUMBER=${CLUE_NUMBER:-8}
+NUM_CLUE_ROUNDS=${NUM_CLUE_ROUNDS:-1}
+export REWARD_MODE=${REWARD_MODE:-sweet_spot}
 
 # ── Model cache in shared memory ──
 export HF_HOME=/dev/shm/${USER}_hf_${SLURM_JOB_ID}
@@ -48,6 +50,7 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 echo "=== Job Info ==="
 echo "Job ID: $SLURM_JOB_ID"
 echo "Model:  $MODEL"
+echo "Reward: $REWARD_MODE"
 echo "Node:   $SLURM_NODELIST"
 echo "GPUs:   $CUDA_VISIBLE_DEVICES"
 echo "Python: $(which python) $(python --version 2>&1)"
@@ -62,6 +65,7 @@ python run_experiment.py grpo \
     --num-runs "$NUM_RUNS" \
     --eval-runs "$EVAL_RUNS" \
     --clue-number "$CLUE_NUMBER" \
+    --num-clue-rounds "$NUM_CLUE_ROUNDS" \
     --experiment-id "grpo-${SLURM_JOB_ID}" \
     --save-transcript
 

@@ -23,8 +23,8 @@ BACKEND_CONFIG = {
     "model": DEFAULT_MODEL,
     "device": 0,
     "torch_dtype": "bfloat16",
-    "max_new_tokens": 32,
-    "temperature": 0.7,
+    "max_new_tokens": 16,
+    "temperature": 1.0,
     "do_sample": True,
     "lora_cfg": {
         "task_type": "CAUSAL_LM",
@@ -67,8 +67,8 @@ class GRPOExperiment:
         model: str = DEFAULT_MODEL,
         device: int = 0,
         torch_dtype: str = "bfloat16",
-        max_new_tokens: int = 32,
-        temperature: float = 0.7,
+        max_new_tokens: int = 16,
+        temperature: float = 1.0,
         experiment_id: str | None = None,
         num_runs: int = 1,
         max_steps: int | None = 50,
@@ -78,6 +78,7 @@ class GRPOExperiment:
         eval_only: bool = False,
         eval_num_runs: int = 0,
         clue_number: int = 8,
+        num_clue_rounds: int = 1,
     ):
         if num_runs < 1:
             raise ValueError("num_runs must be at least 1")
@@ -85,6 +86,8 @@ class GRPOExperiment:
             raise ValueError("eval_num_runs must be >= 0")
         if clue_number < 1:
             raise ValueError("clue_number must be >= 1")
+        if num_clue_rounds < 1:
+            raise ValueError("num_clue_rounds must be >= 1")
 
         self.experiment_filepath = experiment_filepath
         self.model_name = model
@@ -96,6 +99,7 @@ class GRPOExperiment:
         self.eval_only = eval_only
         self.eval_num_runs = eval_num_runs
         self.clue_number = clue_number
+        self.num_clue_rounds = num_clue_rounds
 
         self.logger = setup_logging(log_dir, experiment_id, log_level)
         self.logger.info("Loading config from %s", experiment_filepath)
@@ -140,6 +144,7 @@ class GRPOExperiment:
         env = Chameleon(
             player_configs=self.player_configs,
             backend=self.shared_backend,
+            num_clue_rounds=self.num_clue_rounds,
         )
 
         return ChameleonArena(

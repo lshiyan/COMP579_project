@@ -208,11 +208,15 @@ class Chameleon(Environment):
 
         self._moderator_speak(f"Now the game starts! The topic is: {self.topic}")
         self._moderator_speak(
-            f"You are not chameleon. The word is: {self.code}",
+            f"You are not chameleon. The word is: {self.code}\n"
+            f"Your goal is to give a clue to convince the others that you know the secret word, "
+            f"without letting the chameleon learn the secret word.",
             visible_to=self.non_chameleon_names,
         )
         self._moderator_speak(
-            "You are the chameleon!",
+            "You are the chameleon!\n"
+            "Your goal is to give a clue to convince the others that you know the secret word, "
+            "using any previous clues to your advantage.",
             visible_to=self.chameleon_name,
         )
 
@@ -221,8 +225,8 @@ class Chameleon(Environment):
             f"(but don't give away the secret word). "
             f"You cannot repeat what others have said.\n\n"
             f"IMPORTANT RULE:\n"
-            f"Your clue MUST contain AT MOST 10 words.\n"
-            f"If your response exceeds 10 words, it will be considered INVALID.\n"
+            f"Your clue MUST contain five or less words.\n"
+            f"If your response exceeds 5 words, it will be considered INVALID.\n"
             f"Output ONLY the clue. Do not explain.\n\n"
             f"We will start with {self.player_names[0]}. "
             f"Round 1/{self.num_clue_rounds}."
@@ -310,16 +314,26 @@ class Chameleon(Environment):
         clues: List[str],
         lmb: float = 0.1,
         eta: float = 1.0,
-        alpha: float = 0.5,
         beta: float = 0.5,
-        gamma: float = 2,
+        target_q: float = 0.4,
+        sigma: float = 0.15,
+        weight: float = 1.0,
+        overshoot_threshold: float = 0.6,
+        overshoot_weight: float = 5.0,
+        text_leak_penalty: float = 2.0,
+        alpha: float = 0.5,
+        gamma: float = 5.0,
+        leak_threshold: float = 0.15,
     ):
+        import os
+        mode = os.environ.get("REWARD_MODE", "sweet_spot")
         device = self.belief_device
         candidate_words = self.topic_codes[self.topic]
 
         speaker_idx = self.agent_to_idx[speaker_name]
         chameleon_idx = self.agent_to_idx[self.chameleon_name]
         true_word_idx = self.word_to_idx[self.code]
+        secret_lower = self.code.lower()
 
         rewards = []
 
@@ -331,9 +345,7 @@ class Chameleon(Environment):
             log_q = torch.log(self.word_belief + 1e-12) + lmb * scores
             q_new = torch.softmax(log_q, dim=0)
 
-            true_idx = self.word_to_idx[self.code]
-            true_score = scores[true_idx]
-
+            true_score = scores[true_word_idx]
             baseline = scores.mean()
             suspicion_delta = baseline - true_score
 
@@ -341,13 +353,27 @@ class Chameleon(Environment):
             log_p[speaker_idx] = log_p[speaker_idx] + eta * suspicion_delta
             p_new = torch.softmax(log_p, dim=0)
 
-            expose_cham = p_new[chameleon_idx] - self.player_belief[chameleon_idx]
             self_suspicion = p_new[speaker_idx] - self.player_belief[speaker_idx]
-            word_leak = q_new[true_word_idx] - self.word_belief[true_word_idx]
+            q_true = q_new[true_word_idx]
 
-            clue_reward = (
-                alpha * expose_cham - beta * self_suspicion - gamma * word_leak
-            )
+            if mode == "old":
+                expose_cham = p_new[chameleon_idx] - self.player_belief[chameleon_idx]
+                word_leak = torch.clamp(q_true - leak_threshold, min=0.0)
+                clue_reward = (
+                    alpha * expose_cham
+                    - beta * self_suspicion
+                    - gamma * word_leak
+                )
+            else:
+                sweet_spot_reward = torch.exp(-((q_true - target_q) ** 2) / (2.0 * sigma * sigma))
+                overshoot = torch.clamp(q_true - overshoot_threshold, min=0.0) ** 2
+                text_leak = float(secret_lower in clue.lower())
+                clue_reward = (
+                    weight * sweet_spot_reward
+                    - beta * self_suspicion
+                    - overshoot_weight * overshoot
+                    - text_leak_penalty * text_leak
+                )
 
             rewards.append(clue_reward)
 

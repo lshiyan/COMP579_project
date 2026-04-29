@@ -60,6 +60,8 @@ class RunLogger:
         advantages: list = None,
         best_idx: int = 0,
         grpo_losses: list = None,
+        policy_losses: list = None,
+        kl_losses: list = None,
         belief_loss: float = None,
         post_clue_beliefs: dict = None,
     ):
@@ -85,8 +87,14 @@ class RunLogger:
             self._write(f"    Action: \"{action_preview}\"")
 
         if grpo_losses:
-            loss_parts = "  ".join(f"e{i+1}:{l:.4f}" for i, l in enumerate(grpo_losses))
+            loss_parts = "  ".join(f"e{i+1}:{l:+.4f}" for i, l in enumerate(grpo_losses))
             self._write(f"    GRPO losses: {loss_parts}")
+        if policy_losses:
+            parts = "  ".join(f"e{i+1}:{l:+.4f}" for i, l in enumerate(policy_losses))
+            self._write(f"    Policy losses: {parts}")
+        if kl_losses:
+            parts = "  ".join(f"e{i+1}:{l:+.4f}" for i, l in enumerate(kl_losses))
+            self._write(f"    KL losses: {parts}")
 
         if belief_loss is not None:
             self._write(f"    Belief CE loss: {belief_loss:.4f}")
@@ -164,7 +172,7 @@ class ChameleonArena:
     """Utility class that manages the game environment and players."""
 
     def __init__(
-        self, environment: Chameleon, global_prompt: str = None, clue_number: int = 8, num_grpo_epochs: int = 3, policy_lr: int = 1e-4, belief_lr: int = 1e-5,
+        self, environment: Chameleon, global_prompt: str = None, clue_number: int = 8, num_grpo_epochs: int = 3, policy_lr: float = 1e-4, belief_lr: float = 1e-5,
         logger: RunLogger | None = None,
         train_policy: bool | None = None,
     ):
@@ -275,9 +283,13 @@ class ChameleonArena:
             )
 
             grpo_losses = []
+            policy_losses = []
+            kl_losses = []
             for _ in range(self.num_grpo_epochs):
-                loss = self._compute_grpo_loss(player, responses, advantages)
+                loss, policy_v, kl_v = self._compute_grpo_loss(player, responses, advantages)
                 grpo_losses.append(loss.item())
+                policy_losses.append(policy_v)
+                kl_losses.append(kl_v)
                 self.policy_optimizer.step()
 
             best_idx = int(advantages.argmax().item())
@@ -295,6 +307,8 @@ class ChameleonArena:
                 best_idx=best_idx,
                 best_action=best_action,
                 grpo_losses=grpo_losses,
+                policy_losses=policy_losses,
+                kl_losses=kl_losses,
                 post_clue_beliefs=self._collect_non_chameleon_beliefs(),
                 new_messages=new_messages,
                 terminal_rewards=timestep.reward if timestep.terminal else None,
@@ -374,11 +388,13 @@ class ChameleonArena:
         responses: list,
         advantages: torch.Tensor,
         eps: float = 0.2,
-        beta: float = 0.3,
-    ) -> torch.Tensor:
+        beta: float = 0.05,
+    ) -> tuple:
         device = next(player.backend.model.parameters()).device
         n = len(responses)
         total_value = 0.0
+        policy_value = 0.0
+        kl_value = 0.0
 
         self.policy_optimizer.zero_grad()
 
@@ -416,8 +432,10 @@ class ChameleonArena:
             per_response_loss = (policy_loss_i + beta * kl_i) / n
             per_response_loss.backward()
             total_value += per_response_loss.item()
+            policy_value += policy_loss_i.item() / n
+            kl_value += (beta * kl_i).item() / n
 
-        return torch.tensor(total_value, device=device)
+        return torch.tensor(total_value, device=device), policy_value, kl_value
 
     def _compute_seq_logprob(
         self,

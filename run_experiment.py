@@ -90,7 +90,7 @@ def main():
     os_group.add_argument(
         "--max-new-tokens",
         type=int,
-        default=32,
+        default=16,
         help="Max new tokens to generate per turn.",
     )
     os_group.add_argument(
@@ -110,6 +110,12 @@ def main():
         type=int,
         default=8,
         help="GRPO mode only: number of candidate clues each non-chameleon generates per turn.",
+    )
+    os_group.add_argument(
+        "--num-clue-rounds",
+        type=int,
+        default=1,
+        help="GRPO mode only: number of clue rounds played per game (default 1).",
     )
 
     args = parser.parse_args()
@@ -192,6 +198,7 @@ def main():
             eval_only=args.eval_only,
             eval_num_runs=args.eval_runs,
             clue_number=args.clue_number,
+            num_clue_rounds=args.num_clue_rounds,
         )
         if args.temperature is not None:
             kwargs["temperature"] = args.temperature
