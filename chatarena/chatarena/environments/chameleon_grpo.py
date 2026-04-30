@@ -321,6 +321,8 @@ class Chameleon(Environment):
         overshoot_threshold: float = 0.6,
         overshoot_weight: float = 5.0,
         text_leak_penalty: float = 2.0,
+        uninformative_threshold: float = 0.2,
+        uninformative_weight: float = 2.0,
         alpha: float = 0.5,
         gamma: float = 5.0,
         leak_threshold: float = 0.15,
@@ -367,11 +369,13 @@ class Chameleon(Environment):
             else:
                 sweet_spot_reward = torch.exp(-((q_true - target_q) ** 2) / (2.0 * sigma * sigma))
                 overshoot = torch.clamp(q_true - overshoot_threshold, min=0.0) ** 2
+                uninformative = torch.clamp(uninformative_threshold - q_true, min=0.0)
                 text_leak = float(secret_lower in clue.lower())
                 clue_reward = (
                     weight * sweet_spot_reward
                     - beta * self_suspicion
                     - overshoot_weight * overshoot
+                    - uninformative_weight * uninformative
                     - text_leak_penalty * text_leak
                 )
 
