@@ -4,6 +4,7 @@ from typing import Dict, List, Optional, Union
 
 import torch
 import torch.nn as nn
+import math
 
 from ..backends import TransformersHuggingFaceChat
 from ..chameleon_agent import SIGNAL_END_OF_CONVERSATION, Player
@@ -311,8 +312,9 @@ class Chameleon(Environment):
         lmb: float = 0.1,
         eta: float = 1.0,
         alpha: float = 0.5,
-        beta: float = 0.5,
         gamma: float = 2,
+        max_tokens: int = 12,
+        zeta: float = 0.1
     ):
         device = self.belief_device
         candidate_words = self.topic_codes[self.topic]
@@ -341,12 +343,16 @@ class Chameleon(Environment):
             log_p[speaker_idx] = log_p[speaker_idx] + eta * suspicion_delta
             p_new = torch.softmax(log_p, dim=0)
 
-            expose_cham = p_new[chameleon_idx] - self.player_belief[chameleon_idx]
             self_suspicion = p_new[speaker_idx] - self.player_belief[speaker_idx]
             word_leak = q_new[true_word_idx] - self.word_belief[true_word_idx]
-
+            tokenized_clue = self.backend.tokenizer(clue)
+            token_number = len(tokenized_clue["input_ids"])
+            
+            over_by = max(token_number - max_tokens, 0)
+            length_penalty = math.exp(zeta*over_by) - 1 
+            
             clue_reward = (
-                alpha * expose_cham - beta * self_suspicion - gamma * word_leak
+                -alpha * self_suspicion - gamma * word_leak - length_penalty
             )
 
             rewards.append(clue_reward)
