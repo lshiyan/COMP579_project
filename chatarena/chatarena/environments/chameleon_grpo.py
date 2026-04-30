@@ -323,6 +323,8 @@ class Chameleon(Environment):
         text_leak_penalty: float = 2.0,
         uninformative_threshold: float = 0.2,
         uninformative_weight: float = 2.0,
+        max_clue_words: int = 5,
+        length_penalty: float = 0.2,
         alpha: float = 0.5,
         gamma: float = 5.0,
         leak_threshold: float = 0.15,
@@ -371,12 +373,15 @@ class Chameleon(Environment):
                 overshoot = torch.clamp(q_true - overshoot_threshold, min=0.0) ** 2
                 uninformative = torch.clamp(uninformative_threshold - q_true, min=0.0)
                 text_leak = float(secret_lower in clue.lower())
+                clue_words = clue.replace("<EOS>", "").strip().split()
+                length_overrun = max(0, len(clue_words) - max_clue_words)
                 clue_reward = (
                     weight * sweet_spot_reward
                     - beta * self_suspicion
                     - overshoot_weight * overshoot
                     - uninformative_weight * uninformative
                     - text_leak_penalty * text_leak
+                    - length_penalty * length_overrun
                 )
 
             rewards.append(clue_reward)
