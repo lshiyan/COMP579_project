@@ -314,7 +314,8 @@ class Chameleon(Environment):
         alpha: float = 0.5,
         gamma: float = 2,
         max_tokens: int = 12,
-        zeta: float = 0.1
+        zeta: float = 0.1,
+        word_leak_threshold: float = 0.15
     ):
         device = self.belief_device
         candidate_words = self.topic_codes[self.topic]
@@ -345,6 +346,7 @@ class Chameleon(Environment):
 
             self_suspicion = p_new[speaker_idx] - self.player_belief[speaker_idx]
             word_leak = q_new[true_word_idx] - self.word_belief[true_word_idx]
+            word_leak_penalty = torch.clamp(word_leak - word_leak_threshold, min=0.0)
             tokenized_clue = self.backend.tokenizer(clue)
             token_number = len(tokenized_clue["input_ids"])
             
@@ -352,7 +354,7 @@ class Chameleon(Environment):
             length_penalty = math.exp(zeta*over_by) - 1 
             
             clue_reward = (
-                -alpha * self_suspicion - gamma * word_leak - length_penalty
+                -alpha * self_suspicion - gamma * word_leak_penalty - length_penalty
             )
 
             rewards.append(clue_reward)
