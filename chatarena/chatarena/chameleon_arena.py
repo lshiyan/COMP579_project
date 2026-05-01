@@ -39,6 +39,31 @@ class RunLogger:
         self._file.write(text + "\n")
         self._file.flush()
 
+    def log_reward_weights(self, weights: dict):
+        self._write()
+        self._write("-" * WIDTH)
+        self._write("  REWARD WEIGHTS")
+        self._write("-" * WIDTH)
+        self._write(
+            f"  alpha={weights.get('alpha')} (self_suspicion coef)  "
+            f"gamma={weights.get('gamma')} (word_leak coef)  "
+            f"thresh={weights.get('word_leak_threshold')} (leak floor)"
+        )
+        self._write(
+            f"  max_tokens={weights.get('max_tokens')} (length-penalty trigger)  "
+            f"zeta={weights.get('zeta')} (length penalty rate)  "
+            f"length_cap={weights.get('length_cap')} (max length penalty magnitude)"
+        )
+        self._write(
+            f"  lmb={weights.get('lmb')}  eta={weights.get('eta')}"
+        )
+        self._write(
+            "  reward = -alpha*self_susp"
+            " - gamma*max(word_leak-thresh, 0)"
+            " - min(exp(zeta*max(tokens-max_tokens, 0)) - 1, length_cap)"
+        )
+        self._write("-" * WIDTH)
+
     def log_game_start(self, topic: str, code: str, chameleon_name: str, player_names: list):
         self._game_num += 1
         self._write()
@@ -57,6 +82,7 @@ class RunLogger:
         terminal_rewards: dict,
         responses: list = None,
         belief_rewards: list = None,
+        reward_components: list = None,
         advantages: list = None,
         best_idx: int = 0,
         grpo_losses: list = None,
@@ -71,6 +97,16 @@ class RunLogger:
                 action_preview = resp["action"].replace("\n", " ").strip()[:120]
                 self._write(f"    Attempt {i + 1}  belief_reward={reward:+.4f}  advantage={adv:+.4f}")
                 self._write(f"      \"{action_preview}\"")
+                if reward_components is not None and i < len(reward_components):
+                    c = reward_components[i]
+                    cap_marker = " CAPPED" if c.get('length_cap_hit') else ""
+                    self._write(
+                        f"      reward_breakdown: "
+                        f"self_susp={c['self_suspicion']:+.4f}(term={c['self_suspicion_term']:+.4f})  "
+                        f"word_leak={c['word_leak']:+.4f}(pen={c['word_leak_penalty']:.4f}, term={c['word_leak_term']:+.4f})  "
+                        f"len={c['token_number']}(over={c['over_by']}, term={c['length_term']:+.4f}{cap_marker})  "
+                        f"total={c['total']:+.4f}"
+                    )
             self._write(f"    >> Best attempt {best_idx + 1}: \"{best_action.replace(chr(10), ' ').strip()[:120]}\"")
 
             rewards_t = torch.as_tensor(belief_rewards, dtype=torch.float32)
@@ -83,6 +119,16 @@ class RunLogger:
         else:
             action_preview = best_action.replace("\n", " ").strip()[:120]
             self._write(f"    Action: \"{action_preview}\"")
+            if reward_components is not None and len(reward_components) > 0:
+                c = reward_components[0]
+                cap_marker = " CAPPED" if c.get('length_cap_hit') else ""
+                self._write(
+                    f"    reward_breakdown: "
+                    f"self_susp={c['self_suspicion']:+.4f}(term={c['self_suspicion_term']:+.4f})  "
+                    f"word_leak={c['word_leak']:+.4f}(pen={c['word_leak_penalty']:.4f}, term={c['word_leak_term']:+.4f})  "
+                    f"len={c['token_number']}(over={c['over_by']}, term={c['length_term']:+.4f}{cap_marker})  "
+                    f"total={c['total']:+.4f}"
+                )
 
         if grpo_losses:
             loss_parts = "  ".join(f"e{i+1}:{l:.4f}" for i, l in enumerate(grpo_losses))
@@ -262,7 +308,7 @@ class ChameleonArena:
             clues = [r["action"] for r in responses]
 
             with torch.no_grad():
-                rewards = env.evaluate_clues(player_name, clues)
+                rewards, reward_components = env.evaluate_clues(player_name, clues)
 
             rewards = [
                 r.item() if isinstance(r, torch.Tensor) else float(r)
@@ -291,6 +337,7 @@ class ChameleonArena:
                 player_name=player_name,
                 responses=responses,
                 belief_rewards=rewards,
+                reward_components=reward_components,
                 advantages=advantages.tolist(),
                 best_idx=best_idx,
                 best_action=best_action,
@@ -305,7 +352,7 @@ class ChameleonArena:
             action = _get_action(response)
 
             with torch.no_grad():
-                env.evaluate_clues(player_name, [action])
+                _, reward_components = env.evaluate_clues(player_name, [action])
 
             msg_count_before = len(env.message_pool._messages)
             timestep = env.step(player_name, action)
@@ -314,6 +361,7 @@ class ChameleonArena:
             self.logger.log_step(
                 player_name=player_name,
                 best_action=action,
+                reward_components=reward_components,
                 post_clue_beliefs=self._collect_non_chameleon_beliefs(),
                 new_messages=new_messages,
                 terminal_rewards=timestep.reward if timestep.terminal else None,

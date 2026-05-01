@@ -23,7 +23,7 @@ BACKEND_CONFIG = {
     "model": DEFAULT_MODEL,
     "device": 0,
     "torch_dtype": "bfloat16",
-    "max_new_tokens": 32,
+    "max_new_tokens": 16,
     "temperature": 0.7,
     "do_sample": True,
     "lora_cfg": {
@@ -78,6 +78,12 @@ class GRPOExperiment:
         eval_only: bool = False,
         eval_num_runs: int = 0,
         clue_number: int = 8,
+        reward_alpha: float = 0.5,
+        reward_gamma: float = 2.0,
+        reward_word_leak_threshold: float = 0.15,
+        reward_max_tokens: int = 12,
+        reward_zeta: float = 0.1,
+        reward_length_cap: float = 2.0,
     ):
         if num_runs < 1:
             raise ValueError("num_runs must be at least 1")
@@ -96,6 +102,12 @@ class GRPOExperiment:
         self.eval_only = eval_only
         self.eval_num_runs = eval_num_runs
         self.clue_number = clue_number
+        self.reward_alpha = reward_alpha
+        self.reward_gamma = reward_gamma
+        self.reward_word_leak_threshold = reward_word_leak_threshold
+        self.reward_max_tokens = reward_max_tokens
+        self.reward_zeta = reward_zeta
+        self.reward_length_cap = reward_length_cap
 
         self.logger = setup_logging(log_dir, experiment_id, log_level)
         self.logger.info("Loading config from %s", experiment_filepath)
@@ -140,7 +152,15 @@ class GRPOExperiment:
         env = Chameleon(
             player_configs=self.player_configs,
             backend=self.shared_backend,
+            reward_alpha=self.reward_alpha,
+            reward_gamma=self.reward_gamma,
+            reward_word_leak_threshold=self.reward_word_leak_threshold,
+            reward_max_tokens=self.reward_max_tokens,
+            reward_zeta=self.reward_zeta,
+            reward_length_cap=self.reward_length_cap,
         )
+
+        run_logger.log_reward_weights(env.get_reward_weights())
 
         return ChameleonArena(
             environment=env,

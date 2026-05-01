@@ -69,6 +69,14 @@ class Chameleon(Environment):
         belief_state_size: int = 512,  # Belief state size
         speaker_embedding_size: int = 64,
         num_clue_rounds: int = 1,
+        reward_alpha: float = 0.5,
+        reward_gamma: float = 2.0,
+        reward_word_leak_threshold: float = 0.15,
+        reward_max_tokens: int = 12,
+        reward_zeta: float = 0.1,
+        reward_length_cap: float = 2.0,
+        reward_lmb: float = 0.1,
+        reward_eta: float = 1.0,
         **kwargs,
     ):
         self.topic_codes = DEFAULT_TOPIC_CODES
@@ -80,6 +88,15 @@ class Chameleon(Environment):
         if num_clue_rounds < 1:
             raise ValueError("num_clue_rounds must be >= 1")
         self.num_clue_rounds = num_clue_rounds
+
+        self.reward_alpha = reward_alpha
+        self.reward_gamma = reward_gamma
+        self.reward_word_leak_threshold = reward_word_leak_threshold
+        self.reward_max_tokens = reward_max_tokens
+        self.reward_zeta = reward_zeta
+        self.reward_length_cap = reward_length_cap
+        self.reward_lmb = reward_lmb
+        self.reward_eta = reward_eta
 
         # Backend for LLM generation (can be HuggingFace or None for CS)
         if isinstance(backend, TransformersHuggingFaceChat):
@@ -245,6 +262,18 @@ class Chameleon(Environment):
     def print(self):
         self.message_pool.print()
 
+    def get_reward_weights(self) -> dict:
+        return {
+            "alpha": self.reward_alpha,
+            "gamma": self.reward_gamma,
+            "word_leak_threshold": self.reward_word_leak_threshold,
+            "max_tokens": self.reward_max_tokens,
+            "zeta": self.reward_zeta,
+            "length_cap": self.reward_length_cap,
+            "lmb": self.reward_lmb,
+            "eta": self.reward_eta,
+        }
+
     def get_observation(self, player_name=None) -> List[Message]:
         if player_name is None:
             return self.message_pool.get_all_messages()
@@ -309,14 +338,23 @@ class Chameleon(Environment):
         self,
         speaker_name: str,
         clues: List[str],
-        lmb: float = 0.1,
-        eta: float = 1.0,
-        alpha: float = 0.5,
-        gamma: float = 2,
-        max_tokens: int = 12,
-        zeta: float = 0.1,
-        word_leak_threshold: float = 0.15
+        lmb: float = None,
+        eta: float = None,
+        alpha: float = None,
+        gamma: float = None,
+        max_tokens: int = None,
+        zeta: float = None,
+        word_leak_threshold: float = None,
+        length_cap: float = None,
     ):
+        if lmb is None: lmb = self.reward_lmb
+        if eta is None: eta = self.reward_eta
+        if alpha is None: alpha = self.reward_alpha
+        if gamma is None: gamma = self.reward_gamma
+        if max_tokens is None: max_tokens = self.reward_max_tokens
+        if zeta is None: zeta = self.reward_zeta
+        if word_leak_threshold is None: word_leak_threshold = self.reward_word_leak_threshold
+        if length_cap is None: length_cap = self.reward_length_cap
         device = self.belief_device
         candidate_words = self.topic_codes[self.topic]
 
@@ -325,6 +363,7 @@ class Chameleon(Environment):
         true_word_idx = self.word_to_idx[self.code]
 
         rewards = []
+        components = []
 
         for clue in clues:
             pairs = [(clue, word) for word in candidate_words]
@@ -349,17 +388,35 @@ class Chameleon(Environment):
             word_leak_penalty = torch.clamp(word_leak - word_leak_threshold, min=0.0)
             tokenized_clue = self.backend.tokenizer(clue)
             token_number = len(tokenized_clue["input_ids"])
-            
+
             over_by = max(token_number - max_tokens, 0)
-            length_penalty = math.exp(zeta*over_by) - 1 
-            
-            clue_reward = (
-                -alpha * self_suspicion - gamma * word_leak_penalty - length_penalty
-            )
+            length_penalty_raw = math.exp(zeta*over_by) - 1
+            length_penalty = min(length_penalty_raw, length_cap)
+            length_cap_hit = length_penalty_raw > length_cap
+
+            self_suspicion_term = -alpha * self_suspicion
+            word_leak_term = -gamma * word_leak_penalty
+            length_term = -length_penalty
+
+            clue_reward = self_suspicion_term + word_leak_term + length_term
 
             rewards.append(clue_reward)
+            components.append({
+                "self_suspicion": float(self_suspicion),
+                "self_suspicion_term": float(self_suspicion_term),
+                "word_leak": float(word_leak),
+                "word_leak_penalty": float(word_leak_penalty),
+                "word_leak_term": float(word_leak_term),
+                "token_number": int(token_number),
+                "over_by": int(over_by),
+                "length_penalty": float(length_penalty),
+                "length_penalty_raw": float(length_penalty_raw),
+                "length_cap_hit": bool(length_cap_hit),
+                "length_term": float(length_term),
+                "total": float(clue_reward),
+            })
 
-        return rewards
+        return rewards, components
 
     def update_belief(self, speaker_name, clue, lmb=1.0, eta=1.0):
         device = self.word_belief.device
