@@ -359,8 +359,7 @@ class Chameleon(Environment):
         candidate_words = self.topic_codes[self.topic]
 
         speaker_idx = self.agent_to_idx[speaker_name]
-        chameleon_idx = self.agent_to_idx[self.chameleon_name]
-        true_word_idx = self.word_to_idx[self.code]
+        true_word_idx = candidate_words.index(self.code)
 
         rewards = []
         components = []
@@ -368,13 +367,13 @@ class Chameleon(Environment):
         for clue in clues:
             pairs = [(clue, word) for word in candidate_words]
             scores = self.backend.batch_score(pairs)
-
+            scores = (scores - scores.mean()) / (scores.std() + 1e-6)
+            
             scores = torch.tensor(scores, dtype=torch.float32, device=device)
             log_q = torch.log(self.word_belief + 1e-12) + lmb * scores
             q_new = torch.softmax(log_q, dim=0)
 
-            true_idx = self.word_to_idx[self.code]
-            true_score = scores[true_idx]
+            true_score = scores[true_word_idx]
 
             baseline = scores.mean()
             suspicion_delta = baseline - true_score
@@ -418,32 +417,33 @@ class Chameleon(Environment):
 
         return rewards, components
 
-    def update_belief(self, speaker_name, clue, lmb=1.0, eta=1.0):
+    def update_belief(self, speaker_name, clue):
         device = self.word_belief.device
-        speaker_idx = self.agent_to_idx[speaker_name]
+        candidate_words = self.topic_codes[self.topic]
 
-        pairs = [(clue, w) for w in self.topic_codes[self.topic]]
+        speaker_idx = self.agent_to_idx[speaker_name]
+        true_idx = candidate_words.index(self.code)  # topic-local index
+
+        pairs = [(clue, word) for word in candidate_words]
         scores = self.backend.batch_score(pairs)
         scores = torch.tensor(scores, dtype=torch.float32, device=device)
         scores = (scores - scores.mean()) / (scores.std() + 1e-6)
 
-        log_q = torch.log(self.word_belief + 1e-12) + lmb * scores
+        log_q = torch.log(self.word_belief + 1e-12) + self.reward_lmb * scores
         q_new = torch.softmax(log_q, dim=0)
 
-        true_idx = self.word_to_idx[self.code]
         true_score = scores[true_idx]
-
         baseline = scores.mean()
-
         suspicion_delta = baseline - true_score
 
-        log_p = torch.log(self.player_belief + 1e-12)
-        log_p[speaker_idx] = log_p[speaker_idx] + eta * suspicion_delta
+        log_p = torch.log(self.player_belief + 1e-12).clone()
+        log_p[speaker_idx] = log_p[speaker_idx] + self.reward_eta * suspicion_delta
         p_new = torch.softmax(log_p, dim=0)
 
         if speaker_name != self.chameleon_name:
-            self.word_belief = q_new
-        self.player_belief = p_new
+            self.word_belief = q_new.detach()
+
+        self.player_belief = p_new.detach()
 
     def step(self, player_name: str, action: str) -> TimeStep:
         if not self._initialized:
