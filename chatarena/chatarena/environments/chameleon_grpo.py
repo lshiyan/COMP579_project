@@ -75,7 +75,7 @@ class Chameleon(Environment):
         reward_max_tokens: int = 12,
         reward_zeta: float = 0.1,
         reward_length_cap: float = 2.0,
-        reward_lmb: float = 0.1,
+        reward_lmb: float = 1.0,
         reward_eta: float = 1.0,
         **kwargs,
     ):
