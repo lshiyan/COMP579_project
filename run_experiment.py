@@ -126,6 +126,12 @@ def main():
     reward_group.add_argument("--reward-length-cap", type=float, default=2.0,
         help="Max magnitude of length penalty; penalty=min(exp(zeta*over)-1, cap) (default: 2.0).")
 
+    train_group = parser.add_argument_group("grpo training hyperparameters")
+    train_group.add_argument("--policy-lr", type=float, default=2e-5,
+        help="Adam learning rate for policy (LoRA) updates (default: 2e-5).")
+    train_group.add_argument("--grpo-beta", type=float, default=0.3,
+        help="KL penalty coefficient against the reference (LoRA-disabled) policy (default: 0.3).")
+
     args = parser.parse_args()
 
     if args.experiment_id is None:
@@ -212,6 +218,8 @@ def main():
             reward_max_tokens=args.reward_max_tokens,
             reward_zeta=args.reward_zeta,
             reward_length_cap=args.reward_length_cap,
+            policy_lr=args.policy_lr,
+            grpo_beta=args.grpo_beta,
         )
         if args.temperature is not None:
             kwargs["temperature"] = args.temperature

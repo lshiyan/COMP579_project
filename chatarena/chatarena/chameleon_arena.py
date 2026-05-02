@@ -57,6 +57,10 @@ class RunLogger:
         self._write(
             f"  lmb={weights.get('lmb')}  eta={weights.get('eta')}"
         )
+        if 'policy_lr' in weights or 'grpo_beta' in weights:
+            self._write(
+                f"  policy_lr={weights.get('policy_lr')}  grpo_beta={weights.get('grpo_beta')}"
+            )
         self._write(
             "  reward = -alpha*self_susp"
             " - gamma*max(word_leak-thresh, 0)"
@@ -210,7 +214,8 @@ class ChameleonArena:
     """Utility class that manages the game environment and players."""
 
     def __init__(
-        self, environment: Chameleon, global_prompt: str = None, clue_number: int = 8, num_grpo_epochs: int = 3, policy_lr: int = 1e-4, belief_lr: int = 1e-5,
+        self, environment: Chameleon, global_prompt: str = None, clue_number: int = 8, num_grpo_epochs: int = 3, policy_lr: float = 2e-5, belief_lr: float = 1e-5,
+        grpo_beta: float = 0.3,
         logger: RunLogger | None = None,
         train_policy: bool | None = None,
     ):
@@ -222,6 +227,8 @@ class ChameleonArena:
         self.current_timestep = environment.reset()
         self.uuid = uuid.uuid4()  # Generate a unique id for the game
         self.num_grpo_epochs = num_grpo_epochs
+        self.policy_lr = policy_lr
+        self.grpo_beta = grpo_beta
 
         # GRPO policy training requires a trainable HF backend; caller can force-disable for eval
         backend_trainable = (
@@ -422,8 +429,10 @@ class ChameleonArena:
         responses: list,
         advantages: torch.Tensor,
         eps: float = 0.2,
-        beta: float = 0.3,
+        beta: float = None,
     ) -> torch.Tensor:
+        if beta is None:
+            beta = self.grpo_beta
         device = next(player.backend.model.parameters()).device
         n = len(responses)
         total_value = 0.0

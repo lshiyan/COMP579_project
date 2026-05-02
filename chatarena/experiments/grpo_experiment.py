@@ -24,7 +24,7 @@ BACKEND_CONFIG = {
     "device": 0,
     "torch_dtype": "bfloat16",
     "max_new_tokens": 16,
-    "temperature": 0.7,
+    "temperature": 1.0,
     "do_sample": True,
     "lora_cfg": {
         "task_type": "CAUSAL_LM",
@@ -67,8 +67,8 @@ class GRPOExperiment:
         model: str = DEFAULT_MODEL,
         device: int = 0,
         torch_dtype: str = "bfloat16",
-        max_new_tokens: int = 32,
-        temperature: float = 0.7,
+        max_new_tokens: int = 16,
+        temperature: float = 1.0,
         experiment_id: str | None = None,
         num_runs: int = 1,
         max_steps: int | None = 50,
@@ -84,6 +84,8 @@ class GRPOExperiment:
         reward_max_tokens: int = 12,
         reward_zeta: float = 0.1,
         reward_length_cap: float = 2.0,
+        policy_lr: float = 2e-5,
+        grpo_beta: float = 0.3,
     ):
         if num_runs < 1:
             raise ValueError("num_runs must be at least 1")
@@ -108,6 +110,8 @@ class GRPOExperiment:
         self.reward_max_tokens = reward_max_tokens
         self.reward_zeta = reward_zeta
         self.reward_length_cap = reward_length_cap
+        self.policy_lr = policy_lr
+        self.grpo_beta = grpo_beta
 
         self.logger = setup_logging(log_dir, experiment_id, log_level)
         self.logger.info("Loading config from %s", experiment_filepath)
@@ -160,13 +164,18 @@ class GRPOExperiment:
             reward_length_cap=self.reward_length_cap,
         )
 
-        run_logger.log_reward_weights(env.get_reward_weights())
+        weights = env.get_reward_weights()
+        weights["policy_lr"] = self.policy_lr
+        weights["grpo_beta"] = self.grpo_beta
+        run_logger.log_reward_weights(weights)
 
         return ChameleonArena(
             environment=env,
             global_prompt=self.global_prompt,
             logger=run_logger,
             clue_number=self.clue_number,
+            policy_lr=self.policy_lr,
+            grpo_beta=self.grpo_beta,
             train_policy=not self.eval_only,
         )
 
