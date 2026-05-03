@@ -1,0 +1,304 @@
+2026-04-24 20:52:05,637 [INFO] Loading config from chatarena/examples/chameleon_closed_4p.json
+2026-04-24 20:52:05,647 [INFO] Experiment ready | backend=openai | players=4 | runs=100
+2026-04-24 20:52:05,648 [INFO] Starting run 1/100 (max_steps=50)
+2026-04-24 20:52:13,104 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:52:13,106 [INFO] Finished run 1/100 | chameleon_won=False | win_method=non-chameleon | 7.5s
+2026-04-24 20:52:13,106 [INFO] Starting run 2/100 (max_steps=50)
+2026-04-24 20:52:18,206 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:52:18,207 [INFO] Finished run 2/100 | chameleon_won=True | win_method=chameleon-votes | 5.1s
+2026-04-24 20:52:18,207 [INFO] Starting run 3/100 (max_steps=50)
+2026-04-24 20:52:23,030 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:52:23,030 [INFO] Finished run 3/100 | chameleon_won=True | win_method=chameleon-votes | 4.8s
+2026-04-24 20:52:23,031 [INFO] Starting run 4/100 (max_steps=50)
+2026-04-24 20:52:34,326 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:52:34,328 [INFO] Finished run 4/100 | chameleon_won=True | win_method=chameleon-votes | 11.3s
+2026-04-24 20:52:34,328 [INFO] Starting run 5/100 (max_steps=50)
+2026-04-24 20:52:41,548 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:52:41,548 [INFO] Finished run 5/100 | chameleon_won=True | win_method=chameleon-guess | 7.2s
+2026-04-24 20:52:41,548 [INFO] Starting run 6/100 (max_steps=50)
+2026-04-24 20:53:06,849 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:53:06,851 [INFO] Finished run 6/100 | chameleon_won=True | win_method=chameleon-guess | 25.3s
+2026-04-24 20:53:06,851 [INFO] Starting run 7/100 (max_steps=50)
+2026-04-24 20:53:12,793 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:53:12,794 [INFO] Finished run 7/100 | chameleon_won=True | win_method=chameleon-votes | 5.9s
+2026-04-24 20:53:12,794 [INFO] Starting run 8/100 (max_steps=50)
+2026-04-24 20:53:17,363 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:53:17,364 [INFO] Finished run 8/100 | chameleon_won=True | win_method=chameleon-votes | 4.6s
+2026-04-24 20:53:17,364 [INFO] Starting run 9/100 (max_steps=50)
+2026-04-24 20:53:22,505 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:53:22,506 [INFO] Finished run 9/100 | chameleon_won=True | win_method=chameleon-votes | 5.1s
+2026-04-24 20:53:22,506 [INFO] Starting run 10/100 (max_steps=50)
+2026-04-24 20:53:27,476 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:53:27,476 [INFO] Finished run 10/100 | chameleon_won=True | win_method=chameleon-votes | 5.0s
+2026-04-24 20:53:27,476 [INFO] Starting run 11/100 (max_steps=50)
+2026-04-24 20:53:32,213 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:53:32,213 [INFO] Finished run 11/100 | chameleon_won=True | win_method=chameleon-votes | 4.7s
+2026-04-24 20:53:32,213 [INFO] Starting run 12/100 (max_steps=50)
+2026-04-24 20:53:37,396 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:53:37,396 [INFO] Finished run 12/100 | chameleon_won=True | win_method=chameleon-votes | 5.2s
+2026-04-24 20:53:37,396 [INFO] Starting run 13/100 (max_steps=50)
+2026-04-24 20:53:42,974 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:53:42,975 [INFO] Finished run 13/100 | chameleon_won=True | win_method=chameleon-guess | 5.6s
+2026-04-24 20:53:42,975 [INFO] Starting run 14/100 (max_steps=50)
+2026-04-24 20:53:47,909 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:53:47,909 [INFO] Finished run 14/100 | chameleon_won=True | win_method=chameleon-votes | 4.9s
+2026-04-24 20:53:47,909 [INFO] Starting run 15/100 (max_steps=50)
+2026-04-24 20:53:53,852 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:53:53,853 [INFO] Finished run 15/100 | chameleon_won=True | win_method=chameleon-votes | 5.9s
+2026-04-24 20:53:53,853 [INFO] Starting run 16/100 (max_steps=50)
+2026-04-24 20:53:59,027 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:53:59,028 [INFO] Finished run 16/100 | chameleon_won=True | win_method=chameleon-votes | 5.2s
+2026-04-24 20:53:59,028 [INFO] Starting run 17/100 (max_steps=50)
+2026-04-24 20:54:08,249 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:54:08,249 [INFO] Finished run 17/100 | chameleon_won=True | win_method=chameleon-guess | 9.2s
+2026-04-24 20:54:08,249 [INFO] Starting run 18/100 (max_steps=50)
+2026-04-24 20:54:15,813 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:54:15,814 [INFO] Finished run 18/100 | chameleon_won=True | win_method=chameleon-guess | 7.6s
+2026-04-24 20:54:15,814 [INFO] Starting run 19/100 (max_steps=50)
+2026-04-24 20:54:22,156 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:54:22,157 [INFO] Finished run 19/100 | chameleon_won=True | win_method=chameleon-votes | 6.3s
+2026-04-24 20:54:22,157 [INFO] Starting run 20/100 (max_steps=50)
+2026-04-24 20:54:27,073 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:54:27,074 [INFO] Finished run 20/100 | chameleon_won=True | win_method=chameleon-votes | 4.9s
+2026-04-24 20:54:27,074 [INFO] Starting run 21/100 (max_steps=50)
+2026-04-24 20:54:32,395 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:54:32,396 [INFO] Finished run 21/100 | chameleon_won=True | win_method=chameleon-votes | 5.3s
+2026-04-24 20:54:32,396 [INFO] Starting run 22/100 (max_steps=50)
+2026-04-24 20:54:38,280 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:54:38,280 [INFO] Finished run 22/100 | chameleon_won=True | win_method=chameleon-guess | 5.9s
+2026-04-24 20:54:38,280 [INFO] Starting run 23/100 (max_steps=50)
+2026-04-24 20:54:44,956 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:54:44,956 [INFO] Finished run 23/100 | chameleon_won=True | win_method=chameleon-votes | 6.7s
+2026-04-24 20:54:44,956 [INFO] Starting run 24/100 (max_steps=50)
+2026-04-24 20:54:50,876 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:54:50,876 [INFO] Finished run 24/100 | chameleon_won=True | win_method=chameleon-votes | 5.9s
+2026-04-24 20:54:50,876 [INFO] Starting run 25/100 (max_steps=50)
+2026-04-24 20:54:56,228 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:54:56,228 [INFO] Finished run 25/100 | chameleon_won=True | win_method=chameleon-votes | 5.4s
+2026-04-24 20:54:56,228 [INFO] Starting run 26/100 (max_steps=50)
+2026-04-24 20:55:01,214 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:55:01,215 [INFO] Finished run 26/100 | chameleon_won=True | win_method=chameleon-votes | 5.0s
+2026-04-24 20:55:01,215 [INFO] Starting run 27/100 (max_steps=50)
+2026-04-24 20:55:07,401 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:55:07,401 [INFO] Finished run 27/100 | chameleon_won=True | win_method=chameleon-guess | 6.2s
+2026-04-24 20:55:07,401 [INFO] Starting run 28/100 (max_steps=50)
+2026-04-24 20:55:13,609 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:55:13,609 [INFO] Finished run 28/100 | chameleon_won=True | win_method=chameleon-votes | 6.2s
+2026-04-24 20:55:13,610 [INFO] Starting run 29/100 (max_steps=50)
+2026-04-24 20:55:19,043 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:55:19,043 [INFO] Finished run 29/100 | chameleon_won=True | win_method=chameleon-votes | 5.4s
+2026-04-24 20:55:19,044 [INFO] Starting run 30/100 (max_steps=50)
+2026-04-24 20:55:24,398 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:55:24,398 [INFO] Finished run 30/100 | chameleon_won=True | win_method=chameleon-votes | 5.4s
+2026-04-24 20:55:24,399 [INFO] Starting run 31/100 (max_steps=50)
+2026-04-24 20:55:30,165 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:55:30,165 [INFO] Finished run 31/100 | chameleon_won=False | win_method=non-chameleon | 5.8s
+2026-04-24 20:55:30,166 [INFO] Starting run 32/100 (max_steps=50)
+2026-04-24 20:55:35,214 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:55:35,215 [INFO] Finished run 32/100 | chameleon_won=True | win_method=chameleon-votes | 5.0s
+2026-04-24 20:55:35,215 [INFO] Starting run 33/100 (max_steps=50)
+2026-04-24 20:55:41,826 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:55:41,826 [INFO] Finished run 33/100 | chameleon_won=True | win_method=chameleon-guess | 6.6s
+2026-04-24 20:55:41,826 [INFO] Starting run 34/100 (max_steps=50)
+2026-04-24 20:55:47,944 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:55:47,944 [INFO] Finished run 34/100 | chameleon_won=True | win_method=chameleon-votes | 6.1s
+2026-04-24 20:55:47,944 [INFO] Starting run 35/100 (max_steps=50)
+2026-04-24 20:55:53,926 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:55:53,926 [INFO] Finished run 35/100 | chameleon_won=True | win_method=chameleon-guess | 6.0s
+2026-04-24 20:55:53,927 [INFO] Starting run 36/100 (max_steps=50)
+2026-04-24 20:56:00,237 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:56:00,237 [INFO] Finished run 36/100 | chameleon_won=False | win_method=non-chameleon | 6.3s
+2026-04-24 20:56:00,237 [INFO] Starting run 37/100 (max_steps=50)
+2026-04-24 20:56:06,228 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:56:06,229 [INFO] Finished run 37/100 | chameleon_won=True | win_method=chameleon-votes | 6.0s
+2026-04-24 20:56:06,229 [INFO] Starting run 38/100 (max_steps=50)
+2026-04-24 20:56:13,032 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:56:13,032 [INFO] Finished run 38/100 | chameleon_won=True | win_method=chameleon-guess | 6.8s
+2026-04-24 20:56:13,032 [INFO] Starting run 39/100 (max_steps=50)
+2026-04-24 20:56:18,426 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:56:18,426 [INFO] Finished run 39/100 | chameleon_won=True | win_method=chameleon-votes | 5.4s
+2026-04-24 20:56:18,426 [INFO] Starting run 40/100 (max_steps=50)
+2026-04-24 20:56:24,251 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:56:24,251 [INFO] Finished run 40/100 | chameleon_won=True | win_method=chameleon-votes | 5.8s
+2026-04-24 20:56:24,251 [INFO] Starting run 41/100 (max_steps=50)
+2026-04-24 20:56:30,492 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:56:30,492 [INFO] Finished run 41/100 | chameleon_won=True | win_method=chameleon-votes | 6.2s
+2026-04-24 20:56:30,493 [INFO] Starting run 42/100 (max_steps=50)
+2026-04-24 20:56:35,966 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:56:35,967 [INFO] Finished run 42/100 | chameleon_won=True | win_method=chameleon-votes | 5.5s
+2026-04-24 20:56:35,967 [INFO] Starting run 43/100 (max_steps=50)
+2026-04-24 20:56:40,674 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:56:40,674 [INFO] Finished run 43/100 | chameleon_won=True | win_method=chameleon-votes | 4.7s
+2026-04-24 20:56:40,674 [INFO] Starting run 44/100 (max_steps=50)
+2026-04-24 20:56:46,607 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:56:46,607 [INFO] Finished run 44/100 | chameleon_won=True | win_method=chameleon-votes | 5.9s
+2026-04-24 20:56:46,607 [INFO] Starting run 45/100 (max_steps=50)
+2026-04-24 20:56:51,930 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:56:51,930 [INFO] Finished run 45/100 | chameleon_won=True | win_method=chameleon-votes | 5.3s
+2026-04-24 20:56:51,930 [INFO] Starting run 46/100 (max_steps=50)
+2026-04-24 20:56:57,437 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:56:57,438 [INFO] Finished run 46/100 | chameleon_won=True | win_method=chameleon-votes | 5.5s
+2026-04-24 20:56:57,438 [INFO] Starting run 47/100 (max_steps=50)
+2026-04-24 20:57:03,797 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:57:03,797 [INFO] Finished run 47/100 | chameleon_won=True | win_method=chameleon-guess | 6.4s
+2026-04-24 20:57:03,798 [INFO] Starting run 48/100 (max_steps=50)
+2026-04-24 20:57:09,564 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:57:09,564 [INFO] Finished run 48/100 | chameleon_won=True | win_method=chameleon-votes | 5.8s
+2026-04-24 20:57:09,564 [INFO] Starting run 49/100 (max_steps=50)
+2026-04-24 20:57:14,870 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:57:14,870 [INFO] Finished run 49/100 | chameleon_won=True | win_method=chameleon-votes | 5.3s
+2026-04-24 20:57:14,870 [INFO] Starting run 50/100 (max_steps=50)
+2026-04-24 20:57:21,110 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:57:21,111 [INFO] Finished run 50/100 | chameleon_won=True | win_method=chameleon-guess | 6.2s
+2026-04-24 20:57:21,111 [INFO] Starting run 51/100 (max_steps=50)
+2026-04-24 20:57:26,661 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:57:26,662 [INFO] Finished run 51/100 | chameleon_won=True | win_method=chameleon-votes | 5.5s
+2026-04-24 20:57:26,662 [INFO] Starting run 52/100 (max_steps=50)
+2026-04-24 20:57:31,906 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:57:31,907 [INFO] Finished run 52/100 | chameleon_won=True | win_method=chameleon-votes | 5.2s
+2026-04-24 20:57:31,907 [INFO] Starting run 53/100 (max_steps=50)
+2026-04-24 20:57:37,906 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:57:37,906 [INFO] Finished run 53/100 | chameleon_won=True | win_method=chameleon-votes | 6.0s
+2026-04-24 20:57:37,906 [INFO] Starting run 54/100 (max_steps=50)
+2026-04-24 20:57:43,131 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:57:43,132 [INFO] Finished run 54/100 | chameleon_won=True | win_method=chameleon-votes | 5.2s
+2026-04-24 20:57:43,132 [INFO] Starting run 55/100 (max_steps=50)
+2026-04-24 20:57:48,091 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:57:48,091 [INFO] Finished run 55/100 | chameleon_won=True | win_method=chameleon-votes | 5.0s
+2026-04-24 20:57:48,092 [INFO] Starting run 56/100 (max_steps=50)
+2026-04-24 20:57:53,414 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:57:53,415 [INFO] Finished run 56/100 | chameleon_won=True | win_method=chameleon-votes | 5.3s
+2026-04-24 20:57:53,415 [INFO] Starting run 57/100 (max_steps=50)
+2026-04-24 20:57:58,795 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:57:58,796 [INFO] Finished run 57/100 | chameleon_won=True | win_method=chameleon-votes | 5.4s
+2026-04-24 20:57:58,796 [INFO] Starting run 58/100 (max_steps=50)
+2026-04-24 20:58:04,146 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:58:04,146 [INFO] Finished run 58/100 | chameleon_won=True | win_method=chameleon-votes | 5.3s
+2026-04-24 20:58:04,146 [INFO] Starting run 59/100 (max_steps=50)
+2026-04-24 20:58:09,617 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:58:09,618 [INFO] Finished run 59/100 | chameleon_won=True | win_method=chameleon-votes | 5.5s
+2026-04-24 20:58:09,618 [INFO] Starting run 60/100 (max_steps=50)
+2026-04-24 20:58:15,285 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:58:15,286 [INFO] Finished run 60/100 | chameleon_won=True | win_method=chameleon-votes | 5.7s
+2026-04-24 20:58:15,286 [INFO] Starting run 61/100 (max_steps=50)
+2026-04-24 20:58:20,233 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:58:20,233 [INFO] Finished run 61/100 | chameleon_won=True | win_method=chameleon-votes | 4.9s
+2026-04-24 20:58:20,234 [INFO] Starting run 62/100 (max_steps=50)
+2026-04-24 20:58:25,739 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:58:25,739 [INFO] Finished run 62/100 | chameleon_won=True | win_method=chameleon-votes | 5.5s
+2026-04-24 20:58:25,739 [INFO] Starting run 63/100 (max_steps=50)
+2026-04-24 20:58:30,760 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:58:30,760 [INFO] Finished run 63/100 | chameleon_won=True | win_method=chameleon-votes | 5.0s
+2026-04-24 20:58:30,760 [INFO] Starting run 64/100 (max_steps=50)
+2026-04-24 20:58:36,129 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:58:36,129 [INFO] Finished run 64/100 | chameleon_won=True | win_method=chameleon-votes | 5.4s
+2026-04-24 20:58:36,129 [INFO] Starting run 65/100 (max_steps=50)
+2026-04-24 20:58:41,628 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:58:41,629 [INFO] Finished run 65/100 | chameleon_won=True | win_method=chameleon-votes | 5.5s
+2026-04-24 20:58:41,629 [INFO] Starting run 66/100 (max_steps=50)
+2026-04-24 20:58:46,968 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:58:46,968 [INFO] Finished run 66/100 | chameleon_won=True | win_method=chameleon-guess | 5.3s
+2026-04-24 20:58:46,968 [INFO] Starting run 67/100 (max_steps=50)
+2026-04-24 20:58:53,571 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:58:53,571 [INFO] Finished run 67/100 | chameleon_won=True | win_method=chameleon-votes | 6.6s
+2026-04-24 20:58:53,571 [INFO] Starting run 68/100 (max_steps=50)
+2026-04-24 20:59:00,078 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:59:00,079 [INFO] Finished run 68/100 | chameleon_won=True | win_method=chameleon-votes | 6.5s
+2026-04-24 20:59:00,079 [INFO] Starting run 69/100 (max_steps=50)
+2026-04-24 20:59:06,100 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:59:06,101 [INFO] Finished run 69/100 | chameleon_won=True | win_method=chameleon-guess | 6.0s
+2026-04-24 20:59:06,101 [INFO] Starting run 70/100 (max_steps=50)
+2026-04-24 20:59:11,168 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:59:11,169 [INFO] Finished run 70/100 | chameleon_won=True | win_method=chameleon-votes | 5.1s
+2026-04-24 20:59:11,169 [INFO] Starting run 71/100 (max_steps=50)
+2026-04-24 20:59:16,470 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:59:16,470 [INFO] Finished run 71/100 | chameleon_won=True | win_method=chameleon-votes | 5.3s
+2026-04-24 20:59:16,471 [INFO] Starting run 72/100 (max_steps=50)
+2026-04-24 20:59:22,974 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:59:22,974 [INFO] Finished run 72/100 | chameleon_won=True | win_method=chameleon-guess | 6.5s
+2026-04-24 20:59:22,974 [INFO] Starting run 73/100 (max_steps=50)
+2026-04-24 20:59:28,520 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:59:28,520 [INFO] Finished run 73/100 | chameleon_won=True | win_method=chameleon-votes | 5.5s
+2026-04-24 20:59:28,520 [INFO] Starting run 74/100 (max_steps=50)
+2026-04-24 20:59:34,814 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:59:34,814 [INFO] Finished run 74/100 | chameleon_won=True | win_method=chameleon-guess | 6.3s
+2026-04-24 20:59:34,814 [INFO] Starting run 75/100 (max_steps=50)
+2026-04-24 20:59:40,719 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:59:40,720 [INFO] Finished run 75/100 | chameleon_won=True | win_method=chameleon-votes | 5.9s
+2026-04-24 20:59:40,720 [INFO] Starting run 76/100 (max_steps=50)
+2026-04-24 20:59:45,965 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:59:45,965 [INFO] Finished run 76/100 | chameleon_won=True | win_method=chameleon-votes | 5.2s
+2026-04-24 20:59:45,965 [INFO] Starting run 77/100 (max_steps=50)
+2026-04-24 20:59:51,697 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:59:51,697 [INFO] Finished run 77/100 | chameleon_won=True | win_method=chameleon-guess | 5.7s
+2026-04-24 20:59:51,697 [INFO] Starting run 78/100 (max_steps=50)
+2026-04-24 20:59:56,929 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 20:59:56,929 [INFO] Finished run 78/100 | chameleon_won=True | win_method=chameleon-votes | 5.2s
+2026-04-24 20:59:56,929 [INFO] Starting run 79/100 (max_steps=50)
+2026-04-24 21:00:02,644 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 21:00:02,645 [INFO] Finished run 79/100 | chameleon_won=True | win_method=chameleon-votes | 5.7s
+2026-04-24 21:00:02,645 [INFO] Starting run 80/100 (max_steps=50)
+2026-04-24 21:00:08,720 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 21:00:08,720 [INFO] Finished run 80/100 | chameleon_won=True | win_method=chameleon-guess | 6.1s
+2026-04-24 21:00:08,721 [INFO] Starting run 81/100 (max_steps=50)
+2026-04-24 21:00:15,846 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 21:00:15,846 [INFO] Finished run 81/100 | chameleon_won=True | win_method=chameleon-guess | 7.1s
+2026-04-24 21:00:15,846 [INFO] Starting run 82/100 (max_steps=50)
+2026-04-24 21:00:21,670 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 21:00:21,670 [INFO] Finished run 82/100 | chameleon_won=True | win_method=chameleon-votes | 5.8s
+2026-04-24 21:00:21,670 [INFO] Starting run 83/100 (max_steps=50)
+2026-04-24 21:00:27,397 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 21:00:27,398 [INFO] Finished run 83/100 | chameleon_won=True | win_method=chameleon-votes | 5.7s
+2026-04-24 21:00:27,398 [INFO] Starting run 84/100 (max_steps=50)
+2026-04-24 21:00:33,364 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 21:00:33,364 [INFO] Finished run 84/100 | chameleon_won=True | win_method=chameleon-votes | 6.0s
+2026-04-24 21:00:33,365 [INFO] Starting run 85/100 (max_steps=50)
+2026-04-24 21:00:39,375 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 21:00:39,375 [INFO] Finished run 85/100 | chameleon_won=True | win_method=chameleon-guess | 6.0s
+2026-04-24 21:00:39,375 [INFO] Starting run 86/100 (max_steps=50)
+2026-04-24 21:00:45,484 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 21:00:45,484 [INFO] Finished run 86/100 | chameleon_won=True | win_method=chameleon-votes | 6.1s
+2026-04-24 21:00:45,485 [INFO] Starting run 87/100 (max_steps=50)
+2026-04-24 21:00:50,845 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 21:00:50,845 [INFO] Finished run 87/100 | chameleon_won=True | win_method=chameleon-votes | 5.4s
+2026-04-24 21:00:50,845 [INFO] Starting run 88/100 (max_steps=50)
+2026-04-24 21:00:56,566 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 21:00:56,566 [INFO] Finished run 88/100 | chameleon_won=True | win_method=chameleon-votes | 5.7s
+2026-04-24 21:00:56,567 [INFO] Starting run 89/100 (max_steps=50)
+2026-04-24 21:01:01,880 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 21:01:01,881 [INFO] Finished run 89/100 | chameleon_won=True | win_method=chameleon-votes | 5.3s
+2026-04-24 21:01:01,881 [INFO] Starting run 90/100 (max_steps=50)
+2026-04-24 21:01:07,720 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 21:01:07,720 [INFO] Finished run 90/100 | chameleon_won=True | win_method=chameleon-votes | 5.8s
+2026-04-24 21:01:07,720 [INFO] Starting run 91/100 (max_steps=50)
+2026-04-24 21:01:15,170 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 21:01:15,170 [INFO] Finished run 91/100 | chameleon_won=True | win_method=chameleon-votes | 7.4s
+2026-04-24 21:01:15,170 [INFO] Starting run 92/100 (max_steps=50)
+2026-04-24 21:01:20,498 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 21:01:20,498 [INFO] Finished run 92/100 | chameleon_won=True | win_method=chameleon-votes | 5.3s
+2026-04-24 21:01:20,498 [INFO] Starting run 93/100 (max_steps=50)
+2026-04-24 21:01:26,800 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 21:01:26,800 [INFO] Finished run 93/100 | chameleon_won=True | win_method=chameleon-votes | 6.3s
+2026-04-24 21:01:26,800 [INFO] Starting run 94/100 (max_steps=50)
+2026-04-24 21:01:32,404 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 21:01:32,404 [INFO] Finished run 94/100 | chameleon_won=True | win_method=chameleon-votes | 5.6s
+2026-04-24 21:01:32,404 [INFO] Starting run 95/100 (max_steps=50)
+2026-04-24 21:01:38,118 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 21:01:38,118 [INFO] Finished run 95/100 | chameleon_won=True | win_method=chameleon-votes | 5.7s
+2026-04-24 21:01:38,119 [INFO] Starting run 96/100 (max_steps=50)
+2026-04-24 21:01:44,799 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 21:01:44,800 [INFO] Finished run 96/100 | chameleon_won=True | win_method=chameleon-guess | 6.7s
+2026-04-24 21:01:44,800 [INFO] Starting run 97/100 (max_steps=50)
+2026-04-24 21:01:51,375 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 21:01:51,376 [INFO] Finished run 97/100 | chameleon_won=True | win_method=chameleon-votes | 6.6s
+2026-04-24 21:01:51,376 [INFO] Starting run 98/100 (max_steps=50)
+2026-04-24 21:01:57,775 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 21:01:57,776 [INFO] Finished run 98/100 | chameleon_won=True | win_method=chameleon-guess | 6.4s
+2026-04-24 21:01:57,776 [INFO] Starting run 99/100 (max_steps=50)
+2026-04-24 21:02:03,608 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 21:02:03,608 [INFO] Finished run 99/100 | chameleon_won=True | win_method=chameleon-votes | 5.8s
+2026-04-24 21:02:03,609 [INFO] Starting run 100/100 (max_steps=50)
+2026-04-24 21:02:10,261 [INFO] Transcript saved → logs/openai-4p-25258_transcript.txt
+2026-04-24 21:02:10,261 [INFO] Finished run 100/100 | chameleon_won=True | win_method=chameleon-guess | 6.7s
+2026-04-24 21:02:10,262 [INFO] Summary | total_runs=100 | chameleon_wins=97 | non_chameleon_wins=3 | unknown=0
+2026-04-24 21:02:10,269 [INFO] Summary saved → logs/openai-4p-25258_summary.txt

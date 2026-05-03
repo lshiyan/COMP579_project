@@ -28,12 +28,15 @@ fi
 # ── Parameters (override via environment) ──
 BACKEND=${BACKEND:-openai}
 NUM_RUNS=${NUM_RUNS:-10}
+CONFIG=${CONFIG:-chatarena/examples/chameleon_closed_3p.json}
+EXPERIMENT_TAG=${EXPERIMENT_TAG:-$BACKEND}
 
 # ── Diagnostics ──
 echo "=== Job Info ==="
 echo "Job ID:   $SLURM_JOB_ID"
 echo "Node:     $SLURM_NODELIST"
 echo "Backend:  $BACKEND"
+echo "Config:   $CONFIG"
 echo "Num runs: $NUM_RUNS"
 echo "Python:   $(which python) $(python --version 2>&1)"
 date
@@ -42,8 +45,9 @@ echo "================"
 # ── Run experiment ──
 python run_experiment.py cs \
     --backend "$BACKEND" \
+    --config "$CONFIG" \
     --num-runs "$NUM_RUNS" \
-    --experiment-id "${BACKEND}-${SLURM_JOB_ID}" \
+    --experiment-id "${EXPERIMENT_TAG}-${SLURM_JOB_ID}" \
     --save-transcript
 
 echo "=== Done ==="

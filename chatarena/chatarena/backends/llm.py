@@ -8,7 +8,8 @@ from tenacity import retry, stop_after_attempt, wait_random_exponential
 from ..message import SYSTEM_NAME as SYSTEM
 from ..message import Message
 from .base import IntelligenceBackend, register_backend
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModelForSequenceClassification
+
 from sentence_transformers import SentenceTransformer
 from peft import LoraConfig, get_peft_model, TaskType
 
@@ -38,9 +39,7 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
         device: int = -1,
         torch_dtype: str = "auto",
         max_new_tokens: int = 32, # IMPORTANT: Controls how many words can be in the clue.
-        temperature: float = 0.7,
-        do_sample: bool = True,
-        sentence_encoder_model: str = "sentence-transformers/all-MiniLM-L6-v2",
+        temperature: float = 1.0,
         normalize_sentence_embeddings: bool = True,
         lora_cfg: dict = None,
         **kwargs,
@@ -51,8 +50,6 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
             torch_dtype=torch_dtype,
             max_new_tokens=max_new_tokens,
             temperature=temperature,
-            do_sample=do_sample,
-            sentence_encoder_model=sentence_encoder_model,
             normalize_sentence_embeddings=normalize_sentence_embeddings,
             **kwargs,
         )
@@ -61,9 +58,6 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
         self.device = device
         self.max_new_tokens = max_new_tokens
         self.temperature = temperature
-        self.do_sample = do_sample
-
-        self.sentence_encoder_model_name = sentence_encoder_model
         self.normalize_sentence_embeddings = normalize_sentence_embeddings
 
         if torch_dtype == "auto":
@@ -79,10 +73,8 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
 
         if device >= 0 and torch.cuda.is_available():
             device_map = {"": device}
-            sentence_encoder_device = f"cuda:{device}"
         else:
             device_map = "cpu"
-            sentence_encoder_device = "cpu"
 
         # Resolve to a local snapshot path first (avoids transformers 5.x
         # hang with local_files_only=True while still using the cache).
@@ -112,16 +104,15 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
         
         self.model.eval()
 
+        self.scorer_model_name = "BAAI/bge-reranker-v2-m3"
+        self.clue_scorer = AutoModelForSequenceClassification.from_pretrained(self.scorer_model_name)
+        self.scorer_tokenizer = AutoTokenizer.from_pretrained(self.scorer_model_name)
+        if device >= 0 and torch.cuda.is_available():
+            self.clue_scorer = self.clue_scorer.to(f"cuda:{device}")
+        self.clue_scorer.eval()
+
         if self.tokenizer.pad_token_id is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
-
-        self.sentence_encoder = SentenceTransformer(
-            self.sentence_encoder_model_name,
-            device=sentence_encoder_device,
-        )
-        self.sentence_embedding_size = (
-            self.sentence_encoder.get_sentence_embedding_dimension()
-        )
 
     @staticmethod
     def _to_chat_messages(
@@ -151,7 +142,15 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
                 {"role": "user", "content": f"[{SYSTEM}]: {request_msg.content}"}
             )
 
-        return messages
+        # Some chat templates (e.g. Mistral) require strict user/assistant alternation.
+        # Merge consecutive same-role messages so the template doesn't reject the conversation.
+        merged = []
+        for m in messages:
+            if merged and merged[-1]["role"] == m["role"]:
+                merged[-1]["content"] = merged[-1]["content"] + "\n" + m["content"]
+            else:
+                merged.append(dict(m))
+        return merged
 
     def _tokenize_messages(
         self,
@@ -168,36 +167,13 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
         return {k: v.to(self.model.device) for k, v in inputs.items()}
 
     @torch.no_grad()
-    def _encode_text(
-        self,
-        text: Union[str, List[str]],
-        convert_to_tensor: bool = True,
-        detach_to_cpu: bool = True,
-    ) -> torch.Tensor:
-        embedding = self.sentence_encoder.encode(
-            text,
-            convert_to_tensor=convert_to_tensor,
-            normalize_embeddings=self.normalize_sentence_embeddings,
-            show_progress_bar=False,
-        )
-
-        if convert_to_tensor:
-            embedding = embedding.float()
-            if detach_to_cpu:
-                embedding = embedding.detach().cpu()
-
-        return embedding
-
-    @torch.no_grad()
     def get_message_embedding(
         self,
         message_text: str,
         detach_to_cpu: bool = True,
     ) -> torch.Tensor:
-        return self._encode_text(
-            message_text,
-            convert_to_tensor=True,
-            detach_to_cpu=detach_to_cpu,
+        raise NotImplementedError(
+            "get_message_embedding was removed in encoder_belief; use score()/batch_score()."
         )
 
     @retry(stop=stop_after_attempt(6), wait=wait_random_exponential(min=1, max=60))
@@ -208,7 +184,7 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
             **inputs,
             max_new_tokens=self.max_new_tokens,
             temperature=self.temperature,
-            do_sample=self.do_sample,
+            do_sample=True,
             top_p=0.9,
             top_k=50,
             repetition_penalty=1.1,
@@ -254,6 +230,61 @@ class TransformersHuggingFaceChat(IntelligenceBackend):
             "prompt_attention_mask": inputs["attention_mask"],
         }
 
+    def _format(self, text_a: str, text_b: str):
+        """
+        Apply consistent formatting for clue-word pairs
+        """
+        return f"clue: {text_a}", f"word: {text_b}"
+
+    def score(self, text_a: str, text_b: str, normalize: bool = False):
+        text_a, text_b = self._format(text_a, text_b)
+
+        scorer_device = next(self.clue_scorer.parameters()).device
+        inputs = self.scorer_tokenizer(
+            text_a,
+            text_b,
+            return_tensors="pt",
+            truncation=True,
+            max_length=512
+        ).to(scorer_device)
+
+        with torch.no_grad():
+            logits = self.clue_scorer(**inputs).logits.squeeze()
+
+        score = logits.item()
+
+        if normalize:
+            score = torch.sigmoid(torch.tensor(score)).item()
+
+        return score
+
+    def batch_score(self, pairs, normalize: bool = False):
+        """
+        pairs: List[(text_a, text_b)]
+        """
+        formatted_pairs = [self._format(a, b) for a, b in pairs]
+        texts_a, texts_b = zip(*formatted_pairs)
+
+        scorer_device = next(self.clue_scorer.parameters()).device
+        inputs = self.scorer_tokenizer(
+            list(texts_a),
+            list(texts_b),
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=512
+        ).to(scorer_device)
+
+        with torch.no_grad():
+            logits = self.clue_scorer(**inputs).logits.squeeze(-1)
+
+        scores = logits.cpu()
+
+        if normalize:
+            scores = torch.softmax(scores, dim=0)
+
+        return scores
+    
     def query(
         self,
         agent_name: str,

@@ -90,9 +90,41 @@ def main():
     os_group.add_argument(
         "--max-new-tokens",
         type=int,
-        default=32,
+        default=16,
         help="Max new tokens to generate per turn.",
     )
+    os_group.add_argument(
+        "--eval-only",
+        action="store_true",
+        help="GRPO mode only: skip policy updates and just play games with the current weights.",
+    )
+    os_group.add_argument(
+        "--eval-runs",
+        type=int,
+        default=0,
+        help="GRPO mode only: after training num_runs games, play this many additional games "
+             "with frozen LoRA weights for evaluation. Logs go to <experiment-id>_eval_*.",
+    )
+    os_group.add_argument(
+        "--clue-number",
+        type=int,
+        default=8,
+        help="GRPO mode only: number of candidate clues each non-chameleon generates per turn.",
+    )
+
+    reward_group = parser.add_argument_group("grpo reward weights")
+    reward_group.add_argument("--reward-alpha", type=float, default=0.5,
+        help="Self-suspicion coefficient (default: 0.5).")
+    reward_group.add_argument("--reward-gamma", type=float, default=2.0,
+        help="Word-leak coefficient (default: 2.0).")
+    reward_group.add_argument("--reward-word-leak-threshold", type=float, default=0.15,
+        help="Word-leak threshold below which leak is ignored (default: 0.15).")
+    reward_group.add_argument("--reward-max-tokens", type=int, default=12,
+        help="Token count above which length penalty starts (default: 12).")
+    reward_group.add_argument("--reward-zeta", type=float, default=0.1,
+        help="Length-penalty rate; penalty=exp(zeta*over_by)-1 (default: 0.1).")
+    reward_group.add_argument("--reward-length-cap", type=float, default=2.0,
+        help="Max magnitude of length penalty; penalty=min(exp(zeta*over)-1, cap) (default: 2.0).")
 
     args = parser.parse_args()
 
@@ -171,6 +203,15 @@ def main():
             max_steps=args.max_steps,
             log_dir=args.log_dir,
             save_transcript=args.save_transcript,
+            eval_only=args.eval_only,
+            eval_num_runs=args.eval_runs,
+            clue_number=args.clue_number,
+            reward_alpha=args.reward_alpha,
+            reward_gamma=args.reward_gamma,
+            reward_word_leak_threshold=args.reward_word_leak_threshold,
+            reward_max_tokens=args.reward_max_tokens,
+            reward_zeta=args.reward_zeta,
+            reward_length_cap=args.reward_length_cap,
         )
         if args.temperature is not None:
             kwargs["temperature"] = args.temperature

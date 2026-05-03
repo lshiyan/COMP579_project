@@ -39,6 +39,31 @@ class RunLogger:
         self._file.write(text + "\n")
         self._file.flush()
 
+    def log_reward_weights(self, weights: dict):
+        self._write()
+        self._write("-" * WIDTH)
+        self._write("  REWARD WEIGHTS")
+        self._write("-" * WIDTH)
+        self._write(
+            f"  alpha={weights.get('alpha')} (self_suspicion coef)  "
+            f"gamma={weights.get('gamma')} (word_leak coef)  "
+            f"thresh={weights.get('word_leak_threshold')} (leak floor)"
+        )
+        self._write(
+            f"  max_tokens={weights.get('max_tokens')} (length-penalty trigger)  "
+            f"zeta={weights.get('zeta')} (length penalty rate)  "
+            f"length_cap={weights.get('length_cap')} (max length penalty magnitude)"
+        )
+        self._write(
+            f"  lmb={weights.get('lmb')}  eta={weights.get('eta')}"
+        )
+        self._write(
+            "  reward = -alpha*self_susp"
+            " - gamma*max(word_leak-thresh, 0)"
+            " - min(exp(zeta*max(tokens-max_tokens, 0)) - 1, length_cap)"
+        )
+        self._write("-" * WIDTH)
+
     def log_game_start(self, topic: str, code: str, chameleon_name: str, player_names: list):
         self._game_num += 1
         self._write()
@@ -57,6 +82,7 @@ class RunLogger:
         terminal_rewards: dict,
         responses: list = None,
         belief_rewards: list = None,
+        reward_components: list = None,
         advantages: list = None,
         best_idx: int = 0,
         grpo_losses: list = None,
@@ -71,6 +97,16 @@ class RunLogger:
                 action_preview = resp["action"].replace("\n", " ").strip()[:120]
                 self._write(f"    Attempt {i + 1}  belief_reward={reward:+.4f}  advantage={adv:+.4f}")
                 self._write(f"      \"{action_preview}\"")
+                if reward_components is not None and i < len(reward_components):
+                    c = reward_components[i]
+                    cap_marker = " CAPPED" if c.get('length_cap_hit') else ""
+                    self._write(
+                        f"      reward_breakdown: "
+                        f"self_susp={c['self_suspicion']:+.4f}(term={c['self_suspicion_term']:+.4f})  "
+                        f"word_leak={c['word_leak']:+.4f}(pen={c['word_leak_penalty']:.4f}, term={c['word_leak_term']:+.4f})  "
+                        f"len={c['token_number']}(over={c['over_by']}, term={c['length_term']:+.4f}{cap_marker})  "
+                        f"total={c['total']:+.4f}"
+                    )
             self._write(f"    >> Best attempt {best_idx + 1}: \"{best_action.replace(chr(10), ' ').strip()[:120]}\"")
 
             rewards_t = torch.as_tensor(belief_rewards, dtype=torch.float32)
@@ -83,6 +119,16 @@ class RunLogger:
         else:
             action_preview = best_action.replace("\n", " ").strip()[:120]
             self._write(f"    Action: \"{action_preview}\"")
+            if reward_components is not None and len(reward_components) > 0:
+                c = reward_components[0]
+                cap_marker = " CAPPED" if c.get('length_cap_hit') else ""
+                self._write(
+                    f"    reward_breakdown: "
+                    f"self_susp={c['self_suspicion']:+.4f}(term={c['self_suspicion_term']:+.4f})  "
+                    f"word_leak={c['word_leak']:+.4f}(pen={c['word_leak_penalty']:.4f}, term={c['word_leak_term']:+.4f})  "
+                    f"len={c['token_number']}(over={c['over_by']}, term={c['length_term']:+.4f}{cap_marker})  "
+                    f"total={c['total']:+.4f}"
+                )
 
         if grpo_losses:
             loss_parts = "  ".join(f"e{i+1}:{l:.4f}" for i, l in enumerate(grpo_losses))
@@ -164,8 +210,9 @@ class ChameleonArena:
     """Utility class that manages the game environment and players."""
 
     def __init__(
-        self, environment: Chameleon, global_prompt: str = None, clue_number: int = 3, num_grpo_epochs: int = 3, policy_lr: int = 1e-4, belief_lr: int = 1e-5,
+        self, environment: Chameleon, global_prompt: str = None, clue_number: int = 8, num_grpo_epochs: int = 3, policy_lr: int = 1e-4, belief_lr: int = 1e-5,
         logger: RunLogger | None = None,
+        train_policy: bool | None = None,
     ):
         # Create a container for the players and environment and reset the game
         self.environment = environment
@@ -176,10 +223,13 @@ class ChameleonArena:
         self.uuid = uuid.uuid4()  # Generate a unique id for the game
         self.num_grpo_epochs = num_grpo_epochs
 
-        # GRPO policy training is only possible with a trainable HuggingFace backend
-        self.train_policy = (
+        # GRPO policy training requires a trainable HF backend; caller can force-disable for eval
+        backend_trainable = (
             self.environment.backend is not None
             and hasattr(self.environment.backend, 'model')
+        )
+        self.train_policy = backend_trainable if train_policy is None else (
+            backend_trainable and train_policy
         )
 
         if self.train_policy:
@@ -199,17 +249,9 @@ class ChameleonArena:
             player_names=self.environment.player_names,
         )
 
-        # Belief optimizer — always active (trains belief network via CE loss)
-        belief_params = (
-            list(self.environment.chameleon_belief_updater.parameters())
-            + list(self.environment.non_chameleon_belief_updater.parameters())
-            + list(self.environment.shared_speaker_embedding.parameters())
-            + list(self.environment.shared_player_belief_head.parameters())
-            + list(self.environment.shared_word_belief_head.parameters())
-            + list(self.environment.shared_topic_embedding.parameters())
-        )
-        self.belief_optimizer = torch.optim.Adam(belief_params, lr=belief_lr)
-        
+        self.belief_optimizer = None
+
+
     @property
     def num_players(self):
         return self.environment.num_players
@@ -230,124 +272,117 @@ class ChameleonArena:
         return self.current_timestep
 
     def _collect_non_chameleon_beliefs(self) -> dict:
-        out = {}
-        for p in self.environment.players:
-            if p.hidden_role == "non_chameleon" and p.beliefs is not None:
-                beliefs = p.beliefs.detach()
-                out[p.name] = {
-                    self.environment.player_names[i]: beliefs[i].item()
-                    for i in range(len(self.environment.player_names))
-                }
+        env = self.environment
+        if getattr(env, "player_belief", None) is None:
+            return {}
+        beliefs = env.player_belief.detach()
+        shared = {
+            env.player_names[i]: beliefs[i].item()
+            for i in range(len(env.player_names))
+        }
+        out = {"shared": shared}
+        word_belief = getattr(env, "word_belief", None)
+        candidate_words = (
+            env.topic_codes.get(env.topic)
+            if getattr(env, "topic_codes", None) is not None
+            and getattr(env, "topic", None) is not None
+            else None
+        )
+        if word_belief is not None and candidate_words is not None:
+            wb = word_belief.detach()
+            out["words"] = {
+                candidate_words[i]: wb[i].item()
+                for i in range(len(candidate_words))
+            }
         return out
 
     def step(self) -> TimeStep:
         """Take a step in the game: one player takes an action and the environment updates."""
-        player_name = self.environment.get_next_player()
+        env = self.environment
+        player_name = env.get_next_player()
         player = self.name_to_player[player_name]
-        observation = self.environment.get_observation(player_name)
+        observation = env.get_observation(player_name)
 
-        if self.environment._current_phase == "give clues" and player_name != self.environment.chameleon_name and self.train_policy:
-            # GRPO training path (open-source models only)
-            rewards = []
-            responses = []
-            for _ in range(self.clue_number):
-                response = player(observation)
-                responses.append(response)
-                action = response["action"]
-                with torch.no_grad():
-                    reward = self.environment.evaluate_clue(player_name, action)
-                    rewards.append(reward)
+        if env._current_phase == "give clues" and player_name != env.chameleon_name and self.train_policy:
+            responses = [player(observation) for _ in range(self.clue_number)]
+            clues = [r["action"] for r in responses]
+
+            with torch.no_grad():
+                rewards, reward_components = env.evaluate_clues(player_name, clues)
+
+            rewards = [
+                r.item() if isinstance(r, torch.Tensor) else float(r)
+                for r in rewards
+            ]
 
             rewards_tensor = torch.tensor(rewards, dtype=torch.float32)
-            advantages = (rewards_tensor - rewards_tensor.mean()) / (rewards_tensor.std() + 1e-8)
+            advantages = (rewards_tensor - rewards_tensor.mean()) / (
+                rewards_tensor.std(unbiased=False) + 1e-8
+            )
 
             grpo_losses = []
             for _ in range(self.num_grpo_epochs):
                 loss = self._compute_grpo_loss(player, responses, advantages)
                 grpo_losses.append(loss.item())
-
-                self.policy_optimizer.zero_grad()
-                loss.backward()
                 self.policy_optimizer.step()
 
             best_idx = int(advantages.argmax().item())
             best_action = responses[best_idx]["action"]
 
-            msg_count_before = len(self.environment.message_pool._messages)
-            timestep = self.environment.step(player_name, best_action)
-            new_messages = self.environment.message_pool._messages[msg_count_before:]
-
-            belief_loss = self.environment.compute_belief_ce_loss()
-            self.belief_optimizer.zero_grad()
-            belief_loss.backward()
-            self.belief_optimizer.step()
+            msg_count_before = len(env.message_pool._messages)
+            timestep = env.step(player_name, best_action)
+            new_messages = env.message_pool._messages[msg_count_before:]
 
             self.logger.log_step(
                 player_name=player_name,
                 responses=responses,
-                belief_rewards=[r.item() for r in rewards],
+                belief_rewards=rewards,
+                reward_components=reward_components,
                 advantages=advantages.tolist(),
                 best_idx=best_idx,
                 best_action=best_action,
                 grpo_losses=grpo_losses,
-                belief_loss=belief_loss.item(),
                 post_clue_beliefs=self._collect_non_chameleon_beliefs(),
                 new_messages=new_messages,
                 terminal_rewards=timestep.reward if timestep.terminal else None,
             )
 
-        elif self.environment._current_phase == "give clues" and player_name != self.environment.chameleon_name:
-            # No-GRPO path (closed-source): generate one clue, update beliefs, train belief network
+        elif env._current_phase == "give clues":
             response = player(observation)
             action = _get_action(response)
 
-            msg_count_before = len(self.environment.message_pool._messages)
-            timestep = self.environment.step(player_name, action)
-            new_messages = self.environment.message_pool._messages[msg_count_before:]
+            with torch.no_grad():
+                _, reward_components = env.evaluate_clues(player_name, [action])
 
-            belief_loss = self.environment.compute_belief_ce_loss()
-            self.belief_optimizer.zero_grad()
-            belief_loss.backward()
-            self.belief_optimizer.step()
+            msg_count_before = len(env.message_pool._messages)
+            timestep = env.step(player_name, action)
+            new_messages = env.message_pool._messages[msg_count_before:]
 
             self.logger.log_step(
                 player_name=player_name,
                 best_action=action,
-                belief_loss=belief_loss.item(),
+                reward_components=reward_components,
                 post_clue_beliefs=self._collect_non_chameleon_beliefs(),
                 new_messages=new_messages,
                 terminal_rewards=timestep.reward if timestep.terminal else None,
             )
 
-        elif self.environment._current_phase == "give clues" and player_name == self.environment.chameleon_name:
-            response = player(observation)
-            action = _get_action(response)
-            msg_count_before = len(self.environment.message_pool._messages)
-            timestep = self.environment.step(player_name, action)
-            new_messages = self.environment.message_pool._messages[msg_count_before:]
-
-            self.logger.log_step(
-                player_name=player_name,
-                best_action=action,
-                post_clue_beliefs=self._collect_non_chameleon_beliefs(),
-                new_messages=new_messages,
-                terminal_rewards=timestep.reward if timestep.terminal else None,
-            )
-
-        elif self.environment._current_phase == "accuse":
-            cur_votes = self.environment.get_votes()
-            voted_player = player.vote(cur_votes)
+        elif env._current_phase == "accuse":
+            if player_name == env.chameleon_name:
+                voted_player = player.random_vote()
+            else:
+                voted_player = player.vote_from_belief(env.player_belief)
             action = f"I vote for {voted_player}."
 
-            msg_count_before = len(self.environment.message_pool._messages)
-            timestep = self.environment.step(player_name, action)
-            new_messages = self.environment.message_pool._messages[msg_count_before:]
+            msg_count_before = len(env.message_pool._messages)
+            timestep = env.step(player_name, action)
+            new_messages = env.message_pool._messages[msg_count_before:]
 
-            if player_name != self.environment.chameleon_name and player.beliefs is not None:
-                beliefs = player.beliefs.detach()
+            if player_name != env.chameleon_name:
+                beliefs = env.player_belief.detach()
                 belief_dict = {
-                    self.environment.player_names[i]: beliefs[i].item()
-                    for i in range(len(self.environment.player_names))
+                    env.player_names[i]: beliefs[i].item()
+                    for i in range(len(env.player_names))
                 }
                 self.logger.log_vote(
                     player_name=player_name,
@@ -364,13 +399,13 @@ class ChameleonArena:
                     terminal_rewards=timestep.reward if timestep.terminal else None,
                 )
 
-        elif self.environment._current_phase == "guess":
-            guessed_word = player.guess()
-            action = f"I guess the secret word is {guessed_word}."
+        elif env._current_phase == "guess":
+            response = player(observation)
+            action = _get_action(response)
 
-            msg_count_before = len(self.environment.message_pool._messages)
-            timestep = self.environment.step(player_name, action)
-            new_messages = self.environment.message_pool._messages[msg_count_before:]
+            msg_count_before = len(env.message_pool._messages)
+            timestep = env.step(player_name, action)
+            new_messages = env.message_pool._messages[msg_count_before:]
 
             self.logger.log_step(
                 player_name=player_name,
@@ -387,11 +422,13 @@ class ChameleonArena:
         responses: list,
         advantages: torch.Tensor,
         eps: float = 0.2,
-        beta: float = 0.01,
+        beta: float = 0.3,
     ) -> torch.Tensor:
         device = next(player.backend.model.parameters()).device
-        policy_loss = torch.tensor(0.0, device=device)
-        kl_loss = torch.tensor(0.0, device=device)
+        n = len(responses)
+        total_value = 0.0
+
+        self.policy_optimizer.zero_grad()
 
         for i, response in enumerate(responses):
             seq_len = response["new_tokens"].shape[1]
@@ -404,24 +441,31 @@ class ChameleonArena:
                 new_tokens=response["new_tokens"],
             )
 
-            ratio = torch.exp((log_prob_theta - log_prob_old))
+            ratio = torch.exp(log_prob_theta - log_prob_old)
             adv = advantages[i].to(device)
-
             clipped = torch.clamp(ratio, 1 - eps, 1 + eps)
-            policy_loss = policy_loss - torch.min(ratio * adv, clipped * adv) / seq_len
+            policy_loss_i = -torch.min(ratio * adv, clipped * adv) / seq_len
 
-            with player.backend.model.disable_adapter():
+            with player.backend.model.disable_adapter(), torch.no_grad():
                 log_prob_ref = self._compute_seq_logprob(
                     player.backend.model,
                     prompt_input_ids=response["prompt_input_ids"],
                     prompt_attention_mask=response["prompt_attention_mask"],
                     new_tokens=response["new_tokens"],
                 )
-                
-            kl = torch.exp(log_prob_ref - log_prob_theta) - log_prob_ref + log_prob_theta - 1
-            kl_loss = kl_loss + kl / seq_len
 
-        return (policy_loss + beta * kl_loss) / len(responses)
+            kl_i = (
+                torch.exp(log_prob_ref - log_prob_theta)
+                - log_prob_ref
+                + log_prob_theta
+                - 1
+            ) / seq_len
+
+            per_response_loss = (policy_loss_i + beta * kl_i) / n
+            per_response_loss.backward()
+            total_value += per_response_loss.item()
+
+        return torch.tensor(total_value, device=device)
 
     def _compute_seq_logprob(
         self,
@@ -443,9 +487,10 @@ class ChameleonArena:
         )
 
         outputs = model(input_ids=full_ids, attention_mask=full_mask)
-        logits = outputs.logits
-
-        shift_logits = logits[:, prompt_len - 1:-1, :]
+        # Materialize only the slice we use; allows the full-vocab logits tensor
+        # (1 × prompt_len × vocab — ~160 MB on Qwen) to be freed below.
+        shift_logits = outputs.logits[:, prompt_len - 1:-1, :].clone()
+        del outputs
         shift_labels = new_tokens.to(device)
 
         log_probs = torch.log_softmax(shift_logits, dim=-1)

@@ -1,0 +1,304 @@
+2026-04-24 21:02:57,234 [INFO] Loading config from chatarena/examples/chameleon_closed_5p.json
+2026-04-24 21:02:57,269 [INFO] Experiment ready | backend=openai | players=5 | runs=100
+2026-04-24 21:02:57,269 [INFO] Starting run 1/100 (max_steps=50)
+2026-04-24 21:03:06,780 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:03:06,782 [INFO] Finished run 1/100 | chameleon_won=True | win_method=chameleon-guess | 9.5s
+2026-04-24 21:03:06,782 [INFO] Starting run 2/100 (max_steps=50)
+2026-04-24 21:03:14,743 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:03:14,745 [INFO] Finished run 2/100 | chameleon_won=True | win_method=chameleon-guess | 8.0s
+2026-04-24 21:03:14,745 [INFO] Starting run 3/100 (max_steps=50)
+2026-04-24 21:03:22,125 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:03:22,125 [INFO] Finished run 3/100 | chameleon_won=True | win_method=chameleon-guess | 7.4s
+2026-04-24 21:03:22,125 [INFO] Starting run 4/100 (max_steps=50)
+2026-04-24 21:03:28,311 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:03:28,311 [INFO] Finished run 4/100 | chameleon_won=True | win_method=chameleon-votes | 6.2s
+2026-04-24 21:03:28,312 [INFO] Starting run 5/100 (max_steps=50)
+2026-04-24 21:03:36,573 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:03:36,574 [INFO] Finished run 5/100 | chameleon_won=True | win_method=chameleon-guess | 8.3s
+2026-04-24 21:03:36,574 [INFO] Starting run 6/100 (max_steps=50)
+2026-04-24 21:03:44,190 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:03:44,190 [INFO] Finished run 6/100 | chameleon_won=True | win_method=chameleon-votes | 7.6s
+2026-04-24 21:03:44,191 [INFO] Starting run 7/100 (max_steps=50)
+2026-04-24 21:03:50,950 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:03:50,950 [INFO] Finished run 7/100 | chameleon_won=True | win_method=chameleon-votes | 6.8s
+2026-04-24 21:03:50,950 [INFO] Starting run 8/100 (max_steps=50)
+2026-04-24 21:03:59,182 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:03:59,183 [INFO] Finished run 8/100 | chameleon_won=True | win_method=chameleon-votes | 8.2s
+2026-04-24 21:03:59,183 [INFO] Starting run 9/100 (max_steps=50)
+2026-04-24 21:04:05,671 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:04:05,672 [INFO] Finished run 9/100 | chameleon_won=True | win_method=chameleon-votes | 6.5s
+2026-04-24 21:04:05,672 [INFO] Starting run 10/100 (max_steps=50)
+2026-04-24 21:04:13,088 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:04:13,088 [INFO] Finished run 10/100 | chameleon_won=True | win_method=chameleon-guess | 7.4s
+2026-04-24 21:04:13,088 [INFO] Starting run 11/100 (max_steps=50)
+2026-04-24 21:04:20,272 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:04:20,273 [INFO] Finished run 11/100 | chameleon_won=True | win_method=chameleon-votes | 7.2s
+2026-04-24 21:04:20,273 [INFO] Starting run 12/100 (max_steps=50)
+2026-04-24 21:04:28,002 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:04:28,002 [INFO] Finished run 12/100 | chameleon_won=True | win_method=chameleon-votes | 7.7s
+2026-04-24 21:04:28,002 [INFO] Starting run 13/100 (max_steps=50)
+2026-04-24 21:04:36,141 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:04:36,141 [INFO] Finished run 13/100 | chameleon_won=True | win_method=chameleon-votes | 8.1s
+2026-04-24 21:04:36,141 [INFO] Starting run 14/100 (max_steps=50)
+2026-04-24 21:04:44,596 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:04:44,596 [INFO] Finished run 14/100 | chameleon_won=True | win_method=chameleon-guess | 8.5s
+2026-04-24 21:04:44,597 [INFO] Starting run 15/100 (max_steps=50)
+2026-04-24 21:04:53,473 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:04:53,473 [INFO] Finished run 15/100 | chameleon_won=True | win_method=chameleon-guess | 8.9s
+2026-04-24 21:04:53,474 [INFO] Starting run 16/100 (max_steps=50)
+2026-04-24 21:05:01,186 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:05:01,186 [INFO] Finished run 16/100 | chameleon_won=True | win_method=chameleon-votes | 7.7s
+2026-04-24 21:05:01,187 [INFO] Starting run 17/100 (max_steps=50)
+2026-04-24 21:05:08,108 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:05:08,108 [INFO] Finished run 17/100 | chameleon_won=True | win_method=chameleon-votes | 6.9s
+2026-04-24 21:05:08,108 [INFO] Starting run 18/100 (max_steps=50)
+2026-04-24 21:05:24,287 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:05:24,288 [INFO] Finished run 18/100 | chameleon_won=True | win_method=chameleon-votes | 16.2s
+2026-04-24 21:05:24,289 [INFO] Starting run 19/100 (max_steps=50)
+2026-04-24 21:05:31,880 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:05:31,881 [INFO] Finished run 19/100 | chameleon_won=True | win_method=chameleon-votes | 7.6s
+2026-04-24 21:05:31,881 [INFO] Starting run 20/100 (max_steps=50)
+2026-04-24 21:05:41,477 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:05:41,478 [INFO] Finished run 20/100 | chameleon_won=True | win_method=chameleon-votes | 9.6s
+2026-04-24 21:05:41,478 [INFO] Starting run 21/100 (max_steps=50)
+2026-04-24 21:05:49,843 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:05:49,843 [INFO] Finished run 21/100 | chameleon_won=True | win_method=chameleon-votes | 8.4s
+2026-04-24 21:05:49,843 [INFO] Starting run 22/100 (max_steps=50)
+2026-04-24 21:06:02,079 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:06:02,080 [INFO] Finished run 22/100 | chameleon_won=True | win_method=chameleon-votes | 12.2s
+2026-04-24 21:06:02,080 [INFO] Starting run 23/100 (max_steps=50)
+2026-04-24 21:06:09,800 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:06:09,800 [INFO] Finished run 23/100 | chameleon_won=False | win_method=non-chameleon | 7.7s
+2026-04-24 21:06:09,800 [INFO] Starting run 24/100 (max_steps=50)
+2026-04-24 21:06:17,261 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:06:17,261 [INFO] Finished run 24/100 | chameleon_won=True | win_method=chameleon-guess | 7.5s
+2026-04-24 21:06:17,261 [INFO] Starting run 25/100 (max_steps=50)
+2026-04-24 21:06:25,748 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:06:25,749 [INFO] Finished run 25/100 | chameleon_won=True | win_method=chameleon-guess | 8.5s
+2026-04-24 21:06:25,749 [INFO] Starting run 26/100 (max_steps=50)
+2026-04-24 21:06:32,937 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:06:32,938 [INFO] Finished run 26/100 | chameleon_won=True | win_method=chameleon-votes | 7.2s
+2026-04-24 21:06:32,938 [INFO] Starting run 27/100 (max_steps=50)
+2026-04-24 21:06:40,787 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:06:40,787 [INFO] Finished run 27/100 | chameleon_won=True | win_method=chameleon-guess | 7.8s
+2026-04-24 21:06:40,787 [INFO] Starting run 28/100 (max_steps=50)
+2026-04-24 21:06:47,472 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:06:47,472 [INFO] Finished run 28/100 | chameleon_won=True | win_method=chameleon-votes | 6.7s
+2026-04-24 21:06:47,472 [INFO] Starting run 29/100 (max_steps=50)
+2026-04-24 21:06:55,687 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:06:55,687 [INFO] Finished run 29/100 | chameleon_won=True | win_method=chameleon-votes | 8.2s
+2026-04-24 21:06:55,687 [INFO] Starting run 30/100 (max_steps=50)
+2026-04-24 21:07:04,276 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:07:04,277 [INFO] Finished run 30/100 | chameleon_won=True | win_method=chameleon-votes | 8.6s
+2026-04-24 21:07:04,277 [INFO] Starting run 31/100 (max_steps=50)
+2026-04-24 21:07:12,845 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:07:12,845 [INFO] Finished run 31/100 | chameleon_won=True | win_method=chameleon-guess | 8.6s
+2026-04-24 21:07:12,845 [INFO] Starting run 32/100 (max_steps=50)
+2026-04-24 21:07:19,794 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:07:19,794 [INFO] Finished run 32/100 | chameleon_won=True | win_method=chameleon-votes | 6.9s
+2026-04-24 21:07:19,794 [INFO] Starting run 33/100 (max_steps=50)
+2026-04-24 21:07:27,749 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:07:27,750 [INFO] Finished run 33/100 | chameleon_won=True | win_method=chameleon-guess | 8.0s
+2026-04-24 21:07:27,750 [INFO] Starting run 34/100 (max_steps=50)
+2026-04-24 21:07:36,510 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:07:36,510 [INFO] Finished run 34/100 | chameleon_won=True | win_method=chameleon-guess | 8.8s
+2026-04-24 21:07:36,511 [INFO] Starting run 35/100 (max_steps=50)
+2026-04-24 21:07:43,792 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:07:43,793 [INFO] Finished run 35/100 | chameleon_won=True | win_method=chameleon-votes | 7.3s
+2026-04-24 21:07:43,793 [INFO] Starting run 36/100 (max_steps=50)
+2026-04-24 21:07:51,874 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:07:51,874 [INFO] Finished run 36/100 | chameleon_won=True | win_method=chameleon-guess | 8.1s
+2026-04-24 21:07:51,874 [INFO] Starting run 37/100 (max_steps=50)
+2026-04-24 21:07:59,096 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:07:59,096 [INFO] Finished run 37/100 | chameleon_won=True | win_method=chameleon-votes | 7.2s
+2026-04-24 21:07:59,096 [INFO] Starting run 38/100 (max_steps=50)
+2026-04-24 21:08:06,838 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:08:06,838 [INFO] Finished run 38/100 | chameleon_won=True | win_method=chameleon-votes | 7.7s
+2026-04-24 21:08:06,838 [INFO] Starting run 39/100 (max_steps=50)
+2026-04-24 21:08:17,263 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:08:17,264 [INFO] Finished run 39/100 | chameleon_won=True | win_method=chameleon-votes | 10.4s
+2026-04-24 21:08:17,264 [INFO] Starting run 40/100 (max_steps=50)
+2026-04-24 21:08:27,093 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:08:27,094 [INFO] Finished run 40/100 | chameleon_won=True | win_method=chameleon-votes | 9.8s
+2026-04-24 21:08:27,094 [INFO] Starting run 41/100 (max_steps=50)
+2026-04-24 21:08:34,927 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:08:34,928 [INFO] Finished run 41/100 | chameleon_won=True | win_method=chameleon-votes | 7.8s
+2026-04-24 21:08:34,928 [INFO] Starting run 42/100 (max_steps=50)
+2026-04-24 21:08:48,042 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:08:48,043 [INFO] Finished run 42/100 | chameleon_won=True | win_method=chameleon-guess | 13.1s
+2026-04-24 21:08:48,043 [INFO] Starting run 43/100 (max_steps=50)
+2026-04-24 21:08:54,955 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:08:54,955 [INFO] Finished run 43/100 | chameleon_won=True | win_method=chameleon-votes | 6.9s
+2026-04-24 21:08:54,955 [INFO] Starting run 44/100 (max_steps=50)
+2026-04-24 21:09:01,406 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:09:01,406 [INFO] Finished run 44/100 | chameleon_won=True | win_method=chameleon-votes | 6.5s
+2026-04-24 21:09:01,407 [INFO] Starting run 45/100 (max_steps=50)
+2026-04-24 21:09:08,996 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:09:08,996 [INFO] Finished run 45/100 | chameleon_won=True | win_method=chameleon-guess | 7.6s
+2026-04-24 21:09:08,996 [INFO] Starting run 46/100 (max_steps=50)
+2026-04-24 21:09:17,209 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:09:17,209 [INFO] Finished run 46/100 | chameleon_won=True | win_method=chameleon-guess | 8.2s
+2026-04-24 21:09:17,209 [INFO] Starting run 47/100 (max_steps=50)
+2026-04-24 21:09:24,601 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:09:24,601 [INFO] Finished run 47/100 | chameleon_won=False | win_method=non-chameleon | 7.4s
+2026-04-24 21:09:24,601 [INFO] Starting run 48/100 (max_steps=50)
+2026-04-24 21:09:31,662 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:09:31,662 [INFO] Finished run 48/100 | chameleon_won=True | win_method=chameleon-votes | 7.1s
+2026-04-24 21:09:31,662 [INFO] Starting run 49/100 (max_steps=50)
+2026-04-24 21:09:38,537 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:09:38,537 [INFO] Finished run 49/100 | chameleon_won=True | win_method=chameleon-votes | 6.9s
+2026-04-24 21:09:38,537 [INFO] Starting run 50/100 (max_steps=50)
+2026-04-24 21:09:46,245 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:09:46,245 [INFO] Finished run 50/100 | chameleon_won=True | win_method=chameleon-votes | 7.7s
+2026-04-24 21:09:46,246 [INFO] Starting run 51/100 (max_steps=50)
+2026-04-24 21:09:53,903 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:09:53,903 [INFO] Finished run 51/100 | chameleon_won=True | win_method=chameleon-votes | 7.7s
+2026-04-24 21:09:53,903 [INFO] Starting run 52/100 (max_steps=50)
+2026-04-24 21:10:01,173 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:10:01,174 [INFO] Finished run 52/100 | chameleon_won=True | win_method=chameleon-votes | 7.3s
+2026-04-24 21:10:01,174 [INFO] Starting run 53/100 (max_steps=50)
+2026-04-24 21:10:07,679 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:10:07,679 [INFO] Finished run 53/100 | chameleon_won=True | win_method=chameleon-votes | 6.5s
+2026-04-24 21:10:07,679 [INFO] Starting run 54/100 (max_steps=50)
+2026-04-24 21:10:15,307 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:10:15,308 [INFO] Finished run 54/100 | chameleon_won=True | win_method=chameleon-votes | 7.6s
+2026-04-24 21:10:15,308 [INFO] Starting run 55/100 (max_steps=50)
+2026-04-24 21:10:22,642 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:10:22,642 [INFO] Finished run 55/100 | chameleon_won=True | win_method=chameleon-votes | 7.3s
+2026-04-24 21:10:22,642 [INFO] Starting run 56/100 (max_steps=50)
+2026-04-24 21:10:31,980 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:10:31,981 [INFO] Finished run 56/100 | chameleon_won=True | win_method=chameleon-votes | 9.3s
+2026-04-24 21:10:31,981 [INFO] Starting run 57/100 (max_steps=50)
+2026-04-24 21:10:39,114 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:10:39,114 [INFO] Finished run 57/100 | chameleon_won=True | win_method=chameleon-votes | 7.1s
+2026-04-24 21:10:39,114 [INFO] Starting run 58/100 (max_steps=50)
+2026-04-24 21:10:46,308 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:10:46,309 [INFO] Finished run 58/100 | chameleon_won=True | win_method=chameleon-votes | 7.2s
+2026-04-24 21:10:46,309 [INFO] Starting run 59/100 (max_steps=50)
+2026-04-24 21:10:53,003 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:10:53,004 [INFO] Finished run 59/100 | chameleon_won=True | win_method=chameleon-votes | 6.7s
+2026-04-24 21:10:53,004 [INFO] Starting run 60/100 (max_steps=50)
+2026-04-24 21:10:59,412 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:10:59,412 [INFO] Finished run 60/100 | chameleon_won=True | win_method=chameleon-votes | 6.4s
+2026-04-24 21:10:59,412 [INFO] Starting run 61/100 (max_steps=50)
+2026-04-24 21:11:07,301 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:11:07,301 [INFO] Finished run 61/100 | chameleon_won=True | win_method=chameleon-guess | 7.9s
+2026-04-24 21:11:07,301 [INFO] Starting run 62/100 (max_steps=50)
+2026-04-24 21:11:14,930 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:11:14,931 [INFO] Finished run 62/100 | chameleon_won=True | win_method=chameleon-guess | 7.6s
+2026-04-24 21:11:14,931 [INFO] Starting run 63/100 (max_steps=50)
+2026-04-24 21:11:22,502 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:11:22,502 [INFO] Finished run 63/100 | chameleon_won=True | win_method=chameleon-votes | 7.6s
+2026-04-24 21:11:22,502 [INFO] Starting run 64/100 (max_steps=50)
+2026-04-24 21:11:29,060 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:11:29,060 [INFO] Finished run 64/100 | chameleon_won=True | win_method=chameleon-votes | 6.6s
+2026-04-24 21:11:29,060 [INFO] Starting run 65/100 (max_steps=50)
+2026-04-24 21:11:36,900 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:11:36,900 [INFO] Finished run 65/100 | chameleon_won=True | win_method=chameleon-votes | 7.8s
+2026-04-24 21:11:36,900 [INFO] Starting run 66/100 (max_steps=50)
+2026-04-24 21:11:43,738 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:11:43,738 [INFO] Finished run 66/100 | chameleon_won=True | win_method=chameleon-votes | 6.8s
+2026-04-24 21:11:43,739 [INFO] Starting run 67/100 (max_steps=50)
+2026-04-24 21:11:51,231 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:11:51,232 [INFO] Finished run 67/100 | chameleon_won=True | win_method=chameleon-votes | 7.5s
+2026-04-24 21:11:51,232 [INFO] Starting run 68/100 (max_steps=50)
+2026-04-24 21:11:58,200 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:11:58,201 [INFO] Finished run 68/100 | chameleon_won=True | win_method=chameleon-votes | 7.0s
+2026-04-24 21:11:58,201 [INFO] Starting run 69/100 (max_steps=50)
+2026-04-24 21:12:05,596 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:12:05,596 [INFO] Finished run 69/100 | chameleon_won=True | win_method=chameleon-votes | 7.4s
+2026-04-24 21:12:05,596 [INFO] Starting run 70/100 (max_steps=50)
+2026-04-24 21:12:13,451 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:12:13,451 [INFO] Finished run 70/100 | chameleon_won=True | win_method=chameleon-guess | 7.9s
+2026-04-24 21:12:13,452 [INFO] Starting run 71/100 (max_steps=50)
+2026-04-24 21:12:20,382 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:12:20,382 [INFO] Finished run 71/100 | chameleon_won=True | win_method=chameleon-votes | 6.9s
+2026-04-24 21:12:20,383 [INFO] Starting run 72/100 (max_steps=50)
+2026-04-24 21:12:27,761 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:12:27,761 [INFO] Finished run 72/100 | chameleon_won=True | win_method=chameleon-guess | 7.4s
+2026-04-24 21:12:27,761 [INFO] Starting run 73/100 (max_steps=50)
+2026-04-24 21:12:34,884 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:12:34,885 [INFO] Finished run 73/100 | chameleon_won=True | win_method=chameleon-votes | 7.1s
+2026-04-24 21:12:34,885 [INFO] Starting run 74/100 (max_steps=50)
+2026-04-24 21:12:42,361 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:12:42,361 [INFO] Finished run 74/100 | chameleon_won=True | win_method=chameleon-guess | 7.5s
+2026-04-24 21:12:42,361 [INFO] Starting run 75/100 (max_steps=50)
+2026-04-24 21:12:49,238 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:12:49,239 [INFO] Finished run 75/100 | chameleon_won=True | win_method=chameleon-votes | 6.9s
+2026-04-24 21:12:49,239 [INFO] Starting run 76/100 (max_steps=50)
+2026-04-24 21:12:58,518 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:12:58,519 [INFO] Finished run 76/100 | chameleon_won=True | win_method=chameleon-guess | 9.3s
+2026-04-24 21:12:58,519 [INFO] Starting run 77/100 (max_steps=50)
+2026-04-24 21:13:05,532 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:13:05,532 [INFO] Finished run 77/100 | chameleon_won=True | win_method=chameleon-votes | 7.0s
+2026-04-24 21:13:05,532 [INFO] Starting run 78/100 (max_steps=50)
+2026-04-24 21:13:12,308 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:13:12,308 [INFO] Finished run 78/100 | chameleon_won=True | win_method=chameleon-votes | 6.8s
+2026-04-24 21:13:12,308 [INFO] Starting run 79/100 (max_steps=50)
+2026-04-24 21:13:19,339 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:13:19,339 [INFO] Finished run 79/100 | chameleon_won=True | win_method=chameleon-votes | 7.0s
+2026-04-24 21:13:19,340 [INFO] Starting run 80/100 (max_steps=50)
+2026-04-24 21:13:25,336 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:13:25,337 [INFO] Finished run 80/100 | chameleon_won=True | win_method=chameleon-votes | 6.0s
+2026-04-24 21:13:25,337 [INFO] Starting run 81/100 (max_steps=50)
+2026-04-24 21:13:34,381 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:13:34,382 [INFO] Finished run 81/100 | chameleon_won=True | win_method=chameleon-votes | 9.0s
+2026-04-24 21:13:34,382 [INFO] Starting run 82/100 (max_steps=50)
+2026-04-24 21:13:42,422 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:13:42,422 [INFO] Finished run 82/100 | chameleon_won=True | win_method=chameleon-guess | 8.0s
+2026-04-24 21:13:42,422 [INFO] Starting run 83/100 (max_steps=50)
+2026-04-24 21:13:49,876 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:13:49,876 [INFO] Finished run 83/100 | chameleon_won=True | win_method=chameleon-guess | 7.5s
+2026-04-24 21:13:49,876 [INFO] Starting run 84/100 (max_steps=50)
+2026-04-24 21:13:56,644 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:13:56,644 [INFO] Finished run 84/100 | chameleon_won=True | win_method=chameleon-votes | 6.8s
+2026-04-24 21:13:56,645 [INFO] Starting run 85/100 (max_steps=50)
+2026-04-24 21:14:04,373 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:14:04,373 [INFO] Finished run 85/100 | chameleon_won=True | win_method=chameleon-votes | 7.7s
+2026-04-24 21:14:04,373 [INFO] Starting run 86/100 (max_steps=50)
+2026-04-24 21:14:12,070 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:14:12,070 [INFO] Finished run 86/100 | chameleon_won=True | win_method=chameleon-guess | 7.7s
+2026-04-24 21:14:12,070 [INFO] Starting run 87/100 (max_steps=50)
+2026-04-24 21:14:19,396 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:14:19,396 [INFO] Finished run 87/100 | chameleon_won=True | win_method=chameleon-votes | 7.3s
+2026-04-24 21:14:19,396 [INFO] Starting run 88/100 (max_steps=50)
+2026-04-24 21:14:27,036 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:14:27,036 [INFO] Finished run 88/100 | chameleon_won=True | win_method=chameleon-votes | 7.6s
+2026-04-24 21:14:27,036 [INFO] Starting run 89/100 (max_steps=50)
+2026-04-24 21:14:34,002 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:14:34,002 [INFO] Finished run 89/100 | chameleon_won=True | win_method=chameleon-votes | 7.0s
+2026-04-24 21:14:34,002 [INFO] Starting run 90/100 (max_steps=50)
+2026-04-24 21:14:40,342 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:14:40,343 [INFO] Finished run 90/100 | chameleon_won=True | win_method=chameleon-votes | 6.3s
+2026-04-24 21:14:40,343 [INFO] Starting run 91/100 (max_steps=50)
+2026-04-24 21:14:47,281 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:14:47,281 [INFO] Finished run 91/100 | chameleon_won=True | win_method=chameleon-guess | 6.9s
+2026-04-24 21:14:47,281 [INFO] Starting run 92/100 (max_steps=50)
+2026-04-24 21:14:53,441 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:14:53,441 [INFO] Finished run 92/100 | chameleon_won=True | win_method=chameleon-votes | 6.2s
+2026-04-24 21:14:53,442 [INFO] Starting run 93/100 (max_steps=50)
+2026-04-24 21:14:59,670 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:14:59,671 [INFO] Finished run 93/100 | chameleon_won=True | win_method=chameleon-votes | 6.2s
+2026-04-24 21:14:59,671 [INFO] Starting run 94/100 (max_steps=50)
+2026-04-24 21:15:06,717 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:15:06,717 [INFO] Finished run 94/100 | chameleon_won=True | win_method=chameleon-votes | 7.0s
+2026-04-24 21:15:06,717 [INFO] Starting run 95/100 (max_steps=50)
+2026-04-24 21:15:14,065 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:15:14,065 [INFO] Finished run 95/100 | chameleon_won=True | win_method=chameleon-guess | 7.3s
+2026-04-24 21:15:14,065 [INFO] Starting run 96/100 (max_steps=50)
+2026-04-24 21:15:19,974 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:15:19,974 [INFO] Finished run 96/100 | chameleon_won=True | win_method=chameleon-votes | 5.9s
+2026-04-24 21:15:19,974 [INFO] Starting run 97/100 (max_steps=50)
+2026-04-24 21:15:28,150 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:15:28,150 [INFO] Finished run 97/100 | chameleon_won=True | win_method=chameleon-guess | 8.2s
+2026-04-24 21:15:28,150 [INFO] Starting run 98/100 (max_steps=50)
+2026-04-24 21:15:35,983 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:15:35,983 [INFO] Finished run 98/100 | chameleon_won=True | win_method=chameleon-guess | 7.8s
+2026-04-24 21:15:35,983 [INFO] Starting run 99/100 (max_steps=50)
+2026-04-24 21:15:44,424 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:15:44,424 [INFO] Finished run 99/100 | chameleon_won=True | win_method=chameleon-guess | 8.4s
+2026-04-24 21:15:44,424 [INFO] Starting run 100/100 (max_steps=50)
+2026-04-24 21:15:52,609 [INFO] Transcript saved → logs/openai-5p-25259_transcript.txt
+2026-04-24 21:15:52,609 [INFO] Finished run 100/100 | chameleon_won=True | win_method=chameleon-guess | 8.2s
+2026-04-24 21:15:52,609 [INFO] Summary | total_runs=100 | chameleon_wins=98 | non_chameleon_wins=2 | unknown=0
+2026-04-24 21:15:52,616 [INFO] Summary saved → logs/openai-5p-25259_summary.txt

@@ -1,3 +1,4 @@
+import gc
 import logging
 import os
 import sys
@@ -5,6 +6,8 @@ import time
 from collections import Counter
 from pathlib import Path
 from typing import Any
+
+import torch
 
 from ..chatarena.backends import load_backend
 from ..chatarena.backends.llm import TransformersHuggingFaceChat
@@ -20,7 +23,7 @@ BACKEND_CONFIG = {
     "model": DEFAULT_MODEL,
     "device": 0,
     "torch_dtype": "bfloat16",
-    "max_new_tokens": 32,
+    "max_new_tokens": 16,
     "temperature": 0.7,
     "do_sample": True,
     "lora_cfg": {
@@ -72,9 +75,22 @@ class GRPOExperiment:
         log_dir: str = "logs",
         log_level: str = "INFO",
         save_transcript: bool = False,
+        eval_only: bool = False,
+        eval_num_runs: int = 0,
+        clue_number: int = 8,
+        reward_alpha: float = 0.5,
+        reward_gamma: float = 2.0,
+        reward_word_leak_threshold: float = 0.15,
+        reward_max_tokens: int = 12,
+        reward_zeta: float = 0.1,
+        reward_length_cap: float = 2.0,
     ):
         if num_runs < 1:
             raise ValueError("num_runs must be at least 1")
+        if eval_num_runs < 0:
+            raise ValueError("eval_num_runs must be >= 0")
+        if clue_number < 1:
+            raise ValueError("clue_number must be >= 1")
 
         self.experiment_filepath = experiment_filepath
         self.model_name = model
@@ -83,6 +99,15 @@ class GRPOExperiment:
         self.max_steps = max_steps
         self.save_transcript = save_transcript
         self.log_dir = log_dir
+        self.eval_only = eval_only
+        self.eval_num_runs = eval_num_runs
+        self.clue_number = clue_number
+        self.reward_alpha = reward_alpha
+        self.reward_gamma = reward_gamma
+        self.reward_word_leak_threshold = reward_word_leak_threshold
+        self.reward_max_tokens = reward_max_tokens
+        self.reward_zeta = reward_zeta
+        self.reward_length_cap = reward_length_cap
 
         self.logger = setup_logging(log_dir, experiment_id, log_level)
         self.logger.info("Loading config from %s", experiment_filepath)
@@ -127,12 +152,22 @@ class GRPOExperiment:
         env = Chameleon(
             player_configs=self.player_configs,
             backend=self.shared_backend,
+            reward_alpha=self.reward_alpha,
+            reward_gamma=self.reward_gamma,
+            reward_word_leak_threshold=self.reward_word_leak_threshold,
+            reward_max_tokens=self.reward_max_tokens,
+            reward_zeta=self.reward_zeta,
+            reward_length_cap=self.reward_length_cap,
         )
+
+        run_logger.log_reward_weights(env.get_reward_weights())
 
         return ChameleonArena(
             environment=env,
             global_prompt=self.global_prompt,
             logger=run_logger,
+            clue_number=self.clue_number,
+            train_policy=not self.eval_only,
         )
 
     def _extract_run_result(self, final_timestep: Any, run_idx: int) -> dict[str, Any]:
@@ -142,10 +177,17 @@ class GRPOExperiment:
             "win_method": None if final_timestep is None else getattr(final_timestep, "win_method", None),
         }
 
-    def run_once(self, arena: ChameleonArena, run_idx: int) -> dict[str, Any]:
+    def run_once(
+        self,
+        arena: ChameleonArena,
+        run_idx: int,
+        total_runs: int | None = None,
+        stem: str | None = None,
+    ) -> dict[str, Any]:
+        total = total_runs if total_runs is not None else self.num_runs
         self.logger.info(
             "Starting run %d/%d (max_steps=%s)",
-            run_idx, self.num_runs, self.max_steps,
+            run_idx, total, self.max_steps,
         )
 
         arena.reset()
@@ -163,34 +205,81 @@ class GRPOExperiment:
         result["elapsed_s"] = round(elapsed, 2)
 
         if self.save_transcript:
-            self._save_transcript(arena, run_idx)
+            self._save_transcript(arena, run_idx, total_runs=total, stem=stem)
 
         self.logger.info(
             "Finished run %d/%d | chameleon_won=%s | win_method=%s | %.1fs",
-            run_idx, self.num_runs,
+            run_idx, total,
             result["chameleon_won"], result["win_method"], elapsed,
         )
         return result
 
-    def run(self) -> list[dict[str, Any]]:
-        arena = self._build_arena()
+    def _run_phase(
+        self,
+        arena: ChameleonArena,
+        num_runs: int,
+        stem: str,
+        train_policy: bool,
+    ) -> list[dict[str, Any]]:
+        arena.train_policy = train_policy
+        self.logger.info(
+            "=== Phase | stem=%s | runs=%d | train_policy=%s ===",
+            stem, num_runs, train_policy,
+        )
         results: list[dict[str, Any]] = []
-        for run_idx in range(1, self.num_runs + 1):
-            results.append(self.run_once(arena, run_idx))
-        arena.logger.close()
+        for run_idx in range(1, num_runs + 1):
+            results.append(self.run_once(arena, run_idx, total_runs=num_runs, stem=stem))
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
         self._log_summary(results)
-        self._save_summary(results)
+        self._save_summary(results, stem=stem)
         return results
 
-    def _save_transcript(self, arena: ChameleonArena, run_idx: int) -> None:
-        stem = self.experiment_id or "run"
+    def run(self) -> list[dict[str, Any]]:
+        arena = self._build_arena()
+        train_stem = self.experiment_id or "run"
+
+        train_results = self._run_phase(
+            arena,
+            num_runs=self.num_runs,
+            stem=train_stem,
+            train_policy=not self.eval_only,
+        )
+
+        if self.eval_num_runs > 0:
+            arena.logger.close()
+            eval_stem = train_stem + "_eval"
+            arena.logger = RunLogger(
+                log_dir=self.log_dir,
+                log_path=os.path.join(self.log_dir, f"{eval_stem}_arena.log"),
+            )
+            self._run_phase(
+                arena,
+                num_runs=self.eval_num_runs,
+                stem=eval_stem,
+                train_policy=False,
+            )
+
+        arena.logger.close()
+        return train_results
+
+    def _save_transcript(
+        self,
+        arena: ChameleonArena,
+        run_idx: int,
+        total_runs: int | None = None,
+        stem: str | None = None,
+    ) -> None:
+        stem = stem or self.experiment_id or "run"
+        total = total_runs if total_runs is not None else self.num_runs
         path = os.path.join(self.log_dir, f"{stem}_transcript.txt")
 
         messages = arena.environment.message_pool.get_all_messages()
 
         with open(path, "a", encoding="utf-8") as f:
             f.write(f"\n{'=' * 60}\n")
-            f.write(f"  GAME {run_idx}/{self.num_runs}\n")
+            f.write(f"  GAME {run_idx}/{total}\n")
             f.write(f"{'=' * 60}\n\n")
             for msg in messages:
                 f.write(f"{msg}\n")
@@ -208,8 +297,8 @@ class GRPOExperiment:
             total, chameleon_wins, non_chameleon_wins, unknown,
         )
 
-    def _save_summary(self, results: list[dict[str, Any]]) -> None:
-        stem = self.experiment_id or "run"
+    def _save_summary(self, results: list[dict[str, Any]], stem: str | None = None) -> None:
+        stem = stem or self.experiment_id or "run"
         path = os.path.join(self.log_dir, f"{stem}_summary.txt")
 
         total = len(results)

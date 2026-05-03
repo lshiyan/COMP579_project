@@ -1,0 +1,315 @@
+=== Job Info ===
+Job ID:   25265
+Node:     gpu-teach-01
+Backend:  gemini
+Config:   chatarena/examples/chameleon_closed_4p.json
+Num runs: 100
+Python:   /home/2022/agagli13/envs/comp579/bin/python Python 3.10.12
+Sat Apr 25 12:20:09 AM EDT 2026
+================
+2026-04-25 00:20:52,169 [INFO] Loading config from chatarena/examples/chameleon_closed_4p.json
+2026-04-25 00:20:52,177 [INFO] Experiment ready | backend=gemini | players=4 | runs=100
+2026-04-25 00:20:52,177 [INFO] Starting run 1/100 (max_steps=50)
+2026-04-25 00:22:15,427 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:22:15,430 [INFO] Finished run 1/100 | chameleon_won=True | win_method=chameleon-votes | 83.3s
+2026-04-25 00:22:15,430 [INFO] Starting run 2/100 (max_steps=50)
+2026-04-25 00:24:00,661 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:24:00,664 [INFO] Finished run 2/100 | chameleon_won=True | win_method=chameleon-guess | 105.2s
+2026-04-25 00:24:00,664 [INFO] Starting run 3/100 (max_steps=50)
+2026-04-25 00:25:37,463 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:25:37,466 [INFO] Finished run 3/100 | chameleon_won=True | win_method=chameleon-guess | 96.8s
+2026-04-25 00:25:37,466 [INFO] Starting run 4/100 (max_steps=50)
+2026-04-25 00:27:38,321 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:27:38,324 [INFO] Finished run 4/100 | chameleon_won=True | win_method=chameleon-guess | 120.9s
+2026-04-25 00:27:38,324 [INFO] Starting run 5/100 (max_steps=50)
+2026-04-25 00:29:36,862 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:29:36,865 [INFO] Finished run 5/100 | chameleon_won=True | win_method=chameleon-votes | 118.5s
+2026-04-25 00:29:36,865 [INFO] Starting run 6/100 (max_steps=50)
+2026-04-25 00:31:09,581 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:31:09,584 [INFO] Finished run 6/100 | chameleon_won=True | win_method=chameleon-guess | 92.7s
+2026-04-25 00:31:09,584 [INFO] Starting run 7/100 (max_steps=50)
+2026-04-25 00:32:20,423 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:32:20,424 [INFO] Finished run 7/100 | chameleon_won=True | win_method=chameleon-votes | 70.8s
+2026-04-25 00:32:20,424 [INFO] Starting run 8/100 (max_steps=50)
+2026-04-25 00:33:44,451 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:33:44,451 [INFO] Finished run 8/100 | chameleon_won=True | win_method=chameleon-guess | 84.0s
+2026-04-25 00:33:44,451 [INFO] Starting run 9/100 (max_steps=50)
+2026-04-25 00:35:07,699 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:35:07,699 [INFO] Finished run 9/100 | chameleon_won=True | win_method=chameleon-guess | 83.2s
+2026-04-25 00:35:07,699 [INFO] Starting run 10/100 (max_steps=50)
+2026-04-25 00:36:10,850 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:36:10,850 [INFO] Finished run 10/100 | chameleon_won=True | win_method=chameleon-votes | 63.1s
+2026-04-25 00:36:10,850 [INFO] Starting run 11/100 (max_steps=50)
+2026-04-25 00:37:40,323 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:37:40,324 [INFO] Finished run 11/100 | chameleon_won=True | win_method=chameleon-guess | 89.5s
+2026-04-25 00:37:40,324 [INFO] Starting run 12/100 (max_steps=50)
+2026-04-25 00:39:16,225 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:39:16,228 [INFO] Finished run 12/100 | chameleon_won=True | win_method=chameleon-guess | 95.9s
+2026-04-25 00:39:16,228 [INFO] Starting run 13/100 (max_steps=50)
+2026-04-25 00:41:03,523 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:41:03,526 [INFO] Finished run 13/100 | chameleon_won=True | win_method=chameleon-guess | 107.3s
+2026-04-25 00:41:03,526 [INFO] Starting run 14/100 (max_steps=50)
+2026-04-25 00:42:37,313 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:42:37,315 [INFO] Finished run 14/100 | chameleon_won=True | win_method=chameleon-guess | 93.8s
+2026-04-25 00:42:37,316 [INFO] Starting run 15/100 (max_steps=50)
+2026-04-25 00:44:21,001 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:44:21,004 [INFO] Finished run 15/100 | chameleon_won=True | win_method=chameleon-guess | 103.7s
+2026-04-25 00:44:21,004 [INFO] Starting run 16/100 (max_steps=50)
+2026-04-25 00:45:53,780 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:45:53,783 [INFO] Finished run 16/100 | chameleon_won=True | win_method=chameleon-votes | 92.8s
+2026-04-25 00:45:53,783 [INFO] Starting run 17/100 (max_steps=50)
+2026-04-25 00:47:33,148 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:47:33,151 [INFO] Finished run 17/100 | chameleon_won=True | win_method=chameleon-guess | 99.4s
+2026-04-25 00:47:33,151 [INFO] Starting run 18/100 (max_steps=50)
+2026-04-25 00:49:14,749 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:49:14,752 [INFO] Finished run 18/100 | chameleon_won=False | win_method=non-chameleon | 101.6s
+2026-04-25 00:49:14,752 [INFO] Starting run 19/100 (max_steps=50)
+2026-04-25 00:51:04,954 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:51:04,954 [INFO] Finished run 19/100 | chameleon_won=False | win_method=non-chameleon | 110.2s
+2026-04-25 00:51:04,954 [INFO] Starting run 20/100 (max_steps=50)
+2026-04-25 00:52:31,616 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:52:31,616 [INFO] Finished run 20/100 | chameleon_won=True | win_method=chameleon-guess | 86.7s
+2026-04-25 00:52:31,616 [INFO] Starting run 21/100 (max_steps=50)
+2026-04-25 00:54:17,389 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:54:17,392 [INFO] Finished run 21/100 | chameleon_won=True | win_method=chameleon-guess | 105.8s
+2026-04-25 00:54:17,392 [INFO] Starting run 22/100 (max_steps=50)
+2026-04-25 00:56:01,280 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:56:01,283 [INFO] Finished run 22/100 | chameleon_won=True | win_method=chameleon-guess | 103.9s
+2026-04-25 00:56:01,283 [INFO] Starting run 23/100 (max_steps=50)
+2026-04-25 00:57:50,218 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:57:50,220 [INFO] Finished run 23/100 | chameleon_won=True | win_method=chameleon-guess | 108.9s
+2026-04-25 00:57:50,221 [INFO] Starting run 24/100 (max_steps=50)
+2026-04-25 00:59:25,351 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 00:59:25,354 [INFO] Finished run 24/100 | chameleon_won=True | win_method=chameleon-guess | 95.1s
+2026-04-25 00:59:25,354 [INFO] Starting run 25/100 (max_steps=50)
+2026-04-25 01:00:47,704 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:00:47,704 [INFO] Finished run 25/100 | chameleon_won=True | win_method=chameleon-votes | 82.3s
+2026-04-25 01:00:47,704 [INFO] Starting run 26/100 (max_steps=50)
+2026-04-25 01:02:42,753 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:02:42,756 [INFO] Finished run 26/100 | chameleon_won=True | win_method=chameleon-guess | 115.1s
+2026-04-25 01:02:42,756 [INFO] Starting run 27/100 (max_steps=50)
+2026-04-25 01:04:22,669 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:04:22,672 [INFO] Finished run 27/100 | chameleon_won=True | win_method=chameleon-guess | 99.9s
+2026-04-25 01:04:22,672 [INFO] Starting run 28/100 (max_steps=50)
+2026-04-25 01:05:51,969 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:05:51,970 [INFO] Finished run 28/100 | chameleon_won=True | win_method=chameleon-guess | 89.3s
+2026-04-25 01:05:51,970 [INFO] Starting run 29/100 (max_steps=50)
+2026-04-25 01:07:57,131 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:07:57,135 [INFO] Finished run 29/100 | chameleon_won=True | win_method=chameleon-guess | 125.2s
+2026-04-25 01:07:57,135 [INFO] Starting run 30/100 (max_steps=50)
+2026-04-25 01:09:44,492 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:09:44,495 [INFO] Finished run 30/100 | chameleon_won=True | win_method=chameleon-votes | 107.4s
+2026-04-25 01:09:44,495 [INFO] Starting run 31/100 (max_steps=50)
+2026-04-25 01:11:36,756 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:11:36,759 [INFO] Finished run 31/100 | chameleon_won=True | win_method=chameleon-guess | 112.3s
+2026-04-25 01:11:36,760 [INFO] Starting run 32/100 (max_steps=50)
+2026-04-25 01:13:04,896 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:13:04,896 [INFO] Finished run 32/100 | chameleon_won=True | win_method=chameleon-guess | 88.1s
+2026-04-25 01:13:04,896 [INFO] Starting run 33/100 (max_steps=50)
+2026-04-25 01:14:51,266 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:14:51,269 [INFO] Finished run 33/100 | chameleon_won=True | win_method=chameleon-guess | 106.4s
+2026-04-25 01:14:51,269 [INFO] Starting run 34/100 (max_steps=50)
+2026-04-25 01:16:08,794 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:16:08,794 [INFO] Finished run 34/100 | chameleon_won=True | win_method=chameleon-guess | 77.5s
+2026-04-25 01:16:08,794 [INFO] Starting run 35/100 (max_steps=50)
+2026-04-25 01:17:49,976 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:17:49,979 [INFO] Finished run 35/100 | chameleon_won=True | win_method=chameleon-guess | 101.2s
+2026-04-25 01:17:49,979 [INFO] Starting run 36/100 (max_steps=50)
+2026-04-25 01:19:12,820 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:19:12,821 [INFO] Finished run 36/100 | chameleon_won=True | win_method=chameleon-guess | 82.8s
+2026-04-25 01:19:12,821 [INFO] Starting run 37/100 (max_steps=50)
+2026-04-25 01:20:27,110 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:20:27,110 [INFO] Finished run 37/100 | chameleon_won=True | win_method=chameleon-guess | 74.3s
+2026-04-25 01:20:27,111 [INFO] Starting run 38/100 (max_steps=50)
+2026-04-25 01:22:05,109 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:22:05,112 [INFO] Finished run 38/100 | chameleon_won=True | win_method=chameleon-votes | 98.0s
+2026-04-25 01:22:05,112 [INFO] Starting run 39/100 (max_steps=50)
+2026-04-25 01:23:47,991 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:23:47,994 [INFO] Finished run 39/100 | chameleon_won=True | win_method=chameleon-guess | 102.9s
+2026-04-25 01:23:47,994 [INFO] Starting run 40/100 (max_steps=50)
+2026-04-25 01:25:48,198 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:25:48,201 [INFO] Finished run 40/100 | chameleon_won=True | win_method=chameleon-guess | 120.2s
+2026-04-25 01:25:48,201 [INFO] Starting run 41/100 (max_steps=50)
+2026-04-25 01:27:35,836 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:27:35,839 [INFO] Finished run 41/100 | chameleon_won=True | win_method=chameleon-guess | 107.6s
+2026-04-25 01:27:35,839 [INFO] Starting run 42/100 (max_steps=50)
+2026-04-25 01:28:39,180 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:28:39,180 [INFO] Finished run 42/100 | chameleon_won=False | win_method=non-chameleon | 63.3s
+2026-04-25 01:28:39,181 [INFO] Starting run 43/100 (max_steps=50)
+2026-04-25 01:30:11,307 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:30:11,310 [INFO] Finished run 43/100 | chameleon_won=True | win_method=chameleon-guess | 92.1s
+2026-04-25 01:30:11,310 [INFO] Starting run 44/100 (max_steps=50)
+2026-04-25 01:31:47,166 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:31:47,169 [INFO] Finished run 44/100 | chameleon_won=True | win_method=chameleon-guess | 95.9s
+2026-04-25 01:31:47,169 [INFO] Starting run 45/100 (max_steps=50)
+2026-04-25 01:33:12,318 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:33:12,318 [INFO] Finished run 45/100 | chameleon_won=True | win_method=chameleon-guess | 85.1s
+2026-04-25 01:33:12,318 [INFO] Starting run 46/100 (max_steps=50)
+2026-04-25 01:34:47,483 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:34:47,486 [INFO] Finished run 46/100 | chameleon_won=True | win_method=chameleon-guess | 95.2s
+2026-04-25 01:34:47,486 [INFO] Starting run 47/100 (max_steps=50)
+2026-04-25 01:36:13,309 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:36:13,309 [INFO] Finished run 47/100 | chameleon_won=True | win_method=chameleon-votes | 85.8s
+2026-04-25 01:36:13,309 [INFO] Starting run 48/100 (max_steps=50)
+2026-04-25 01:37:38,484 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:37:38,484 [INFO] Finished run 48/100 | chameleon_won=True | win_method=chameleon-guess | 85.2s
+2026-04-25 01:37:38,484 [INFO] Starting run 49/100 (max_steps=50)
+2026-04-25 01:39:14,641 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:39:14,644 [INFO] Finished run 49/100 | chameleon_won=True | win_method=chameleon-guess | 96.2s
+2026-04-25 01:39:14,644 [INFO] Starting run 50/100 (max_steps=50)
+2026-04-25 01:40:45,335 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:40:45,336 [INFO] Finished run 50/100 | chameleon_won=True | win_method=chameleon-guess | 90.7s
+2026-04-25 01:40:45,336 [INFO] Starting run 51/100 (max_steps=50)
+2026-04-25 01:42:15,722 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:42:15,723 [INFO] Finished run 51/100 | chameleon_won=True | win_method=chameleon-guess | 90.4s
+2026-04-25 01:42:15,723 [INFO] Starting run 52/100 (max_steps=50)
+2026-04-25 01:43:32,776 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:43:32,776 [INFO] Finished run 52/100 | chameleon_won=True | win_method=chameleon-guess | 77.1s
+2026-04-25 01:43:32,776 [INFO] Starting run 53/100 (max_steps=50)
+2026-04-25 01:44:53,866 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:44:53,866 [INFO] Finished run 53/100 | chameleon_won=True | win_method=chameleon-guess | 81.1s
+2026-04-25 01:44:53,866 [INFO] Starting run 54/100 (max_steps=50)
+2026-04-25 01:46:33,675 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:46:33,678 [INFO] Finished run 54/100 | chameleon_won=True | win_method=chameleon-guess | 99.8s
+2026-04-25 01:46:33,679 [INFO] Starting run 55/100 (max_steps=50)
+2026-04-25 01:48:03,152 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:48:03,152 [INFO] Finished run 55/100 | chameleon_won=True | win_method=chameleon-votes | 89.5s
+2026-04-25 01:48:03,152 [INFO] Starting run 56/100 (max_steps=50)
+2026-04-25 01:49:52,685 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:49:52,688 [INFO] Finished run 56/100 | chameleon_won=False | win_method=non-chameleon | 109.5s
+2026-04-25 01:49:52,688 [INFO] Starting run 57/100 (max_steps=50)
+2026-04-25 01:50:57,695 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:50:57,695 [INFO] Finished run 57/100 | chameleon_won=True | win_method=chameleon-votes | 65.0s
+2026-04-25 01:50:57,696 [INFO] Starting run 58/100 (max_steps=50)
+2026-04-25 01:52:08,621 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:52:08,622 [INFO] Finished run 58/100 | chameleon_won=True | win_method=chameleon-votes | 70.9s
+2026-04-25 01:52:08,622 [INFO] Starting run 59/100 (max_steps=50)
+2026-04-25 01:54:07,845 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:54:07,847 [INFO] Finished run 59/100 | chameleon_won=True | win_method=chameleon-guess | 119.2s
+2026-04-25 01:54:07,848 [INFO] Starting run 60/100 (max_steps=50)
+2026-04-25 01:55:50,967 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:55:50,970 [INFO] Finished run 60/100 | chameleon_won=True | win_method=chameleon-guess | 103.1s
+2026-04-25 01:55:50,970 [INFO] Starting run 61/100 (max_steps=50)
+2026-04-25 01:57:34,486 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:57:34,489 [INFO] Finished run 61/100 | chameleon_won=True | win_method=chameleon-votes | 103.5s
+2026-04-25 01:57:34,489 [INFO] Starting run 62/100 (max_steps=50)
+2026-04-25 01:59:00,658 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 01:59:00,658 [INFO] Finished run 62/100 | chameleon_won=True | win_method=chameleon-votes | 86.2s
+2026-04-25 01:59:00,659 [INFO] Starting run 63/100 (max_steps=50)
+2026-04-25 02:01:09,667 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:01:09,669 [INFO] Finished run 63/100 | chameleon_won=True | win_method=chameleon-guess | 129.0s
+2026-04-25 02:01:09,669 [INFO] Starting run 64/100 (max_steps=50)
+2026-04-25 02:03:22,583 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:03:22,586 [INFO] Finished run 64/100 | chameleon_won=True | win_method=chameleon-guess | 132.9s
+2026-04-25 02:03:22,586 [INFO] Starting run 65/100 (max_steps=50)
+2026-04-25 02:05:18,068 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:05:18,071 [INFO] Finished run 65/100 | chameleon_won=True | win_method=chameleon-guess | 115.5s
+2026-04-25 02:05:18,071 [INFO] Starting run 66/100 (max_steps=50)
+2026-04-25 02:06:49,672 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:06:49,675 [INFO] Finished run 66/100 | chameleon_won=True | win_method=chameleon-votes | 91.6s
+2026-04-25 02:06:49,675 [INFO] Starting run 67/100 (max_steps=50)
+2026-04-25 02:08:32,224 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:08:32,226 [INFO] Finished run 67/100 | chameleon_won=True | win_method=chameleon-guess | 102.5s
+2026-04-25 02:08:32,227 [INFO] Starting run 68/100 (max_steps=50)
+2026-04-25 02:09:55,766 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:09:55,767 [INFO] Finished run 68/100 | chameleon_won=True | win_method=chameleon-votes | 83.5s
+2026-04-25 02:09:55,767 [INFO] Starting run 69/100 (max_steps=50)
+2026-04-25 02:12:15,759 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:12:15,762 [INFO] Finished run 69/100 | chameleon_won=True | win_method=chameleon-guess | 140.0s
+2026-04-25 02:12:15,762 [INFO] Starting run 70/100 (max_steps=50)
+2026-04-25 02:13:30,846 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:13:30,847 [INFO] Finished run 70/100 | chameleon_won=True | win_method=chameleon-votes | 75.1s
+2026-04-25 02:13:30,847 [INFO] Starting run 71/100 (max_steps=50)
+2026-04-25 02:15:30,986 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:15:30,989 [INFO] Finished run 71/100 | chameleon_won=True | win_method=chameleon-guess | 120.1s
+2026-04-25 02:15:30,989 [INFO] Starting run 72/100 (max_steps=50)
+2026-04-25 02:17:25,263 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:17:25,265 [INFO] Finished run 72/100 | chameleon_won=True | win_method=chameleon-guess | 114.3s
+2026-04-25 02:17:25,266 [INFO] Starting run 73/100 (max_steps=50)
+2026-04-25 02:19:08,202 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:19:08,204 [INFO] Finished run 73/100 | chameleon_won=True | win_method=chameleon-votes | 102.9s
+2026-04-25 02:19:08,205 [INFO] Starting run 74/100 (max_steps=50)
+2026-04-25 02:20:50,492 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:20:50,495 [INFO] Finished run 74/100 | chameleon_won=True | win_method=chameleon-guess | 102.3s
+2026-04-25 02:20:50,495 [INFO] Starting run 75/100 (max_steps=50)
+2026-04-25 02:22:12,946 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:22:12,947 [INFO] Finished run 75/100 | chameleon_won=True | win_method=chameleon-votes | 82.5s
+2026-04-25 02:22:12,947 [INFO] Starting run 76/100 (max_steps=50)
+2026-04-25 02:23:51,796 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:23:51,799 [INFO] Finished run 76/100 | chameleon_won=True | win_method=chameleon-guess | 98.9s
+2026-04-25 02:23:51,799 [INFO] Starting run 77/100 (max_steps=50)
+2026-04-25 02:25:47,647 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:25:47,650 [INFO] Finished run 77/100 | chameleon_won=True | win_method=chameleon-guess | 115.8s
+2026-04-25 02:25:47,650 [INFO] Starting run 78/100 (max_steps=50)
+2026-04-25 02:27:07,095 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:27:07,095 [INFO] Finished run 78/100 | chameleon_won=True | win_method=chameleon-votes | 79.4s
+2026-04-25 02:27:07,095 [INFO] Starting run 79/100 (max_steps=50)
+2026-04-25 02:29:06,091 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:29:06,094 [INFO] Finished run 79/100 | chameleon_won=True | win_method=chameleon-guess | 119.0s
+2026-04-25 02:29:06,095 [INFO] Starting run 80/100 (max_steps=50)
+2026-04-25 02:31:01,249 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:31:01,252 [INFO] Finished run 80/100 | chameleon_won=True | win_method=chameleon-guess | 115.2s
+2026-04-25 02:31:01,252 [INFO] Starting run 81/100 (max_steps=50)
+2026-04-25 02:32:43,892 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:32:43,895 [INFO] Finished run 81/100 | chameleon_won=True | win_method=chameleon-votes | 102.6s
+2026-04-25 02:32:43,896 [INFO] Starting run 82/100 (max_steps=50)
+2026-04-25 02:34:16,566 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:34:16,569 [INFO] Finished run 82/100 | chameleon_won=True | win_method=chameleon-votes | 92.7s
+2026-04-25 02:34:16,569 [INFO] Starting run 83/100 (max_steps=50)
+2026-04-25 02:36:12,150 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:36:12,153 [INFO] Finished run 83/100 | chameleon_won=True | win_method=chameleon-guess | 115.6s
+2026-04-25 02:36:12,153 [INFO] Starting run 84/100 (max_steps=50)
+2026-04-25 02:38:12,316 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:38:12,319 [INFO] Finished run 84/100 | chameleon_won=True | win_method=chameleon-guess | 120.2s
+2026-04-25 02:38:12,319 [INFO] Starting run 85/100 (max_steps=50)
+2026-04-25 02:39:59,624 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:39:59,627 [INFO] Finished run 85/100 | chameleon_won=True | win_method=chameleon-votes | 107.3s
+2026-04-25 02:39:59,627 [INFO] Starting run 86/100 (max_steps=50)
+2026-04-25 02:42:28,130 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:42:28,132 [INFO] Finished run 86/100 | chameleon_won=True | win_method=chameleon-guess | 148.5s
+2026-04-25 02:42:28,133 [INFO] Starting run 87/100 (max_steps=50)
+2026-04-25 02:44:58,559 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:44:58,561 [INFO] Finished run 87/100 | chameleon_won=True | win_method=chameleon-guess | 150.4s
+2026-04-25 02:44:58,562 [INFO] Starting run 88/100 (max_steps=50)
+2026-04-25 02:47:08,149 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:47:08,151 [INFO] Finished run 88/100 | chameleon_won=True | win_method=chameleon-votes | 129.6s
+2026-04-25 02:47:08,152 [INFO] Starting run 89/100 (max_steps=50)
+2026-04-25 02:49:08,451 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:49:08,454 [INFO] Finished run 89/100 | chameleon_won=True | win_method=chameleon-votes | 120.3s
+2026-04-25 02:49:08,454 [INFO] Starting run 90/100 (max_steps=50)
+2026-04-25 02:51:52,840 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:51:52,843 [INFO] Finished run 90/100 | chameleon_won=True | win_method=chameleon-guess | 164.4s
+2026-04-25 02:51:52,843 [INFO] Starting run 91/100 (max_steps=50)
+2026-04-25 02:54:10,943 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:54:10,946 [INFO] Finished run 91/100 | chameleon_won=True | win_method=chameleon-guess | 138.1s
+2026-04-25 02:54:10,946 [INFO] Starting run 92/100 (max_steps=50)
+2026-04-25 02:56:06,865 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:56:06,868 [INFO] Finished run 92/100 | chameleon_won=True | win_method=chameleon-votes | 115.9s
+2026-04-25 02:56:06,868 [INFO] Starting run 93/100 (max_steps=50)
+2026-04-25 02:57:55,356 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 02:57:55,360 [INFO] Finished run 93/100 | chameleon_won=True | win_method=chameleon-votes | 108.5s
+2026-04-25 02:57:55,360 [INFO] Starting run 94/100 (max_steps=50)
+2026-04-25 03:00:22,782 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 03:00:22,785 [INFO] Finished run 94/100 | chameleon_won=True | win_method=chameleon-votes | 147.4s
+2026-04-25 03:00:22,785 [INFO] Starting run 95/100 (max_steps=50)
+2026-04-25 03:02:00,332 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 03:02:00,335 [INFO] Finished run 95/100 | chameleon_won=True | win_method=chameleon-votes | 97.5s
+2026-04-25 03:02:00,335 [INFO] Starting run 96/100 (max_steps=50)
+2026-04-25 03:03:55,754 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 03:03:55,757 [INFO] Finished run 96/100 | chameleon_won=False | win_method=non-chameleon | 115.4s
+2026-04-25 03:03:55,757 [INFO] Starting run 97/100 (max_steps=50)
+2026-04-25 03:06:21,564 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 03:06:21,567 [INFO] Finished run 97/100 | chameleon_won=True | win_method=chameleon-guess | 145.8s
+2026-04-25 03:06:21,567 [INFO] Starting run 98/100 (max_steps=50)
+2026-04-25 03:07:42,348 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 03:07:42,351 [INFO] Finished run 98/100 | chameleon_won=True | win_method=chameleon-votes | 80.8s
+2026-04-25 03:07:42,351 [INFO] Starting run 99/100 (max_steps=50)
+2026-04-25 03:09:04,867 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 03:09:04,870 [INFO] Finished run 99/100 | chameleon_won=True | win_method=chameleon-votes | 82.5s
+2026-04-25 03:09:04,870 [INFO] Starting run 100/100 (max_steps=50)
+2026-04-25 03:11:02,100 [INFO] Transcript saved → logs/gemini-4p-25265_transcript.txt
+2026-04-25 03:11:02,103 [INFO] Finished run 100/100 | chameleon_won=True | win_method=chameleon-guess | 117.2s
+2026-04-25 03:11:02,103 [INFO] Summary | total_runs=100 | chameleon_wins=95 | non_chameleon_wins=5 | unknown=0
+2026-04-25 03:11:02,111 [INFO] Summary saved → logs/gemini-4p-25265_summary.txt
+=== Done ===
+Sat Apr 25 03:11:03 AM EDT 2026
